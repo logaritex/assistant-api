@@ -14,41 +14,45 @@
  * limitations under the License.
  */
 
-package com.logaritex.ai.api.demos;
+package com.logaritex.ai.api.samples.codeinterpreter;
 
 import java.util.List;
 import java.util.Map;
 
 import com.logaritex.ai.api.AssistantApi;
 import com.logaritex.ai.api.Data;
+import com.logaritex.ai.api.FileApi;
+import com.logaritex.ai.api.Data.Assistant;
+import com.logaritex.ai.api.Data.Message;
 import com.logaritex.ai.api.Data.Run;
-import com.logaritex.ai.api.Data.TextContent;
 import com.logaritex.ai.api.Data.ThreadRequest;
 
 /**
- * https://youtu.be/pq34V_V5j18?t=1494
+ * WIP On of the most important parts of Assistant is the ability to leverage tools to perform Actions autonomously.
+ *
+ * The "Code Interpreter" expands the Assistant's capabilities to include: accurate math, processing files, data
+ * analysis, generating images...
+ *
+ * https://youtu.be/pq34V_V5j18?t=1734
  *
  * @author Christian Tzolov
  */
-public class DemoBasics {
-
-	// Benefits of Assistant API:
-	//
-	// 1. Don't have to store messages in my own DB.
-	// 2. OpenAi handles truncating messages to fit the context window for me.
-	// 3. The model output is generated even if I'm disconnected from the API (e.g. the Run async).
-	// 4. I can always get the messages later as they remain saved to the thread.
+public class DemoCodeInterpreterTool {
 
 	public static void main(String[] args) throws InterruptedException {
 
-		// Connect to the assistant API.
-		// https://platform.openai.com/docs/assistants/overview
+		FileApi fileApi = new FileApi(System.getenv("OPENAI_API_KEY"));
+
 		AssistantApi assistantApi = new AssistantApi(System.getenv("OPENAI_API_KEY"));
 
-		// Crate and assistant.
-		Data.Assistant assistant = assistantApi.createAssistant(new Data.RequestBody(
+
+		Assistant assistant = assistantApi.createAssistant(new Data.AssistantRequestBody(
 				"gpt-4-1106-preview",
-				"You are a expert in geography, be helpful and concise."));
+				"Personal finance genius",
+				"",
+				"You help users with their personal finance questions.",
+				List.of(new Data.Tool(Data.Tool.Type.code_interpreter)),
+				List.of(), Map.of()));
 
 		//
 		// Threads - represents a session between your user and your application.
@@ -59,40 +63,35 @@ public class DemoBasics {
 
 		// Add user message to the thread.
 		// Role is from the user because the user types this message and the content is their question.
-		assistantApi.createMessage(
-				new Data.MessageRequest(Data.Role.user, "What is the capital of France?"),
+		Data.Message<String> message = assistantApi.createMessage(
+				new Data.MessageRequest(Data.Role.user,
+						"Generate a chart showing which day of the week I spend the most money?"),
 				thread.id());
 
 		//
 		// Runs - Represents an execution run on a thread.
 		//
-
-		// Create run to assign the thread with our geography assistant.
-		// P.S. The same thread can be associated (e.g. run) with multiple, different assistants.
 		Data.Run run = assistantApi.createRun(thread.id(), new Data.RunRequest(assistant.id()));
 
-		System.out.println("Run status: " + run.status()); // expected to be 'queued'
+		System.out.println("Run status: " + run.status());
 
-		// Wait until the Run completes, e.g. the answer is received.
-		while (assistantApi.retrieveRun(thread.id(), run.id()).status() != Run.Status.completed) {
+		// Wait until the completed
+		while (run.status() != Run.Status.completed) {
 			java.lang.Thread.sleep(500);
+			run = assistantApi.retrieveRun(thread.id(), run.id());
 		}
 
 		// Get all messages associated with the thread.
-		Data.DataList<Data.Message<Data.TextContent>> messages = assistantApi.listMessages(new Data.ListRequest(),
+		Data.DataList<Data.Message<String>> messages = assistantApi.listMessages(new Data.ListRequest(),
 				thread.id());
 
 		System.out.println("Size: " + messages.data().size());
 		System.out.println("Thread Messages: " + messages.data());
 
-		// Thread contains both user's and assistant's messages. Filter out only the assistant one.
-		List<Data.Message<Data.TextContent>> assistantMessages = messages.data().stream()
-				.filter(msg -> msg.role() == Data.Role.assistant).toList();
-
+		List<Message<String>> assistantMessages = messages.data().stream().filter(m -> m.role() == Data.Role.assistant)
+				.toList();
+		// assistantMessages.forEach(m -> System.out.println(m.content()));
 		System.out.println(assistantMessages);
-
-		List<List<TextContent>> list = assistantMessages.stream().map(msg -> msg.content()).toList();
-		System.out.println(list);
 	}
 
 }

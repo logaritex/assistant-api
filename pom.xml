@@ -5,7 +5,7 @@
 
 	<groupId>com.logaritex.ai</groupId>
 	<artifactId>assistant-api</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 
 	<name>assistant-api</name>
 	<description>OpenAI Assistent API Client</description>
@@ -34,9 +34,9 @@
 	</organization>
 
 	<scm>
-		<connection>scm:git:git@github.com:logaritex/data-generator.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/logaritex/data-generator.git</developerConnection>
-		<url>https://github.com/logaritex/data-generator/tree/main</url>
+		<connection>scm:git:git@git@github.com:logaritex/assistant-api.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/logaritex/assistant-api.git</developerConnection>
+		<url>https://github.com/logaritex/assistant-api/tree/main</url>
 		<tag>HEAD</tag>
 	</scm>
 
@@ -120,7 +120,7 @@
 			<id>release</id>
 			<build>
 				<plugins>
-					<plugin>
+					<!-- <plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
 						<executions>
@@ -132,13 +132,13 @@
 								</goals>
 								<configuration>
 									<gpgArguments>
-										<arg>--pinentry-mode</arg>
+										<arg> - - pinentry-mode</arg> FIX - -
 										<arg>loopback</arg>
 									</gpgArguments>
 								</configuration>
 							</execution>
 						</executions>
-					</plugin>
+					</plugin> -->
 
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>

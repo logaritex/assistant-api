@@ -26,7 +26,6 @@ import com.logaritex.ai.api.Data.File;
 import com.logaritex.ai.api.Data.ResponseError;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -37,14 +36,15 @@ import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 
 /**
- * Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+ * Java client for the OpenAI Files API: https://platform.openai.com/docs/api-reference/files
  *
- * https://platform.openai.com/docs/api-reference
+ * The Files API is used to upload documents that can be used with features like Assistants and Fine-tuning.
+ *
  * @author Christian Tzolov
  */
 public class FileApi {
 
-	private static final String HTTPS_API_OPENAI_COM = "https://api.openai.com";
+	private static final String DEFAULT_BASE_URL = "https://api.openai.com";
 
 	private final RestClient rest;
 	private final Consumer<HttpHeaders> jsonContentHeaders;
@@ -53,11 +53,20 @@ public class FileApi {
 
 	private String openAiToken;
 
+	/**
+	 * Create new FileApi instance.
+	 * @param openAiToken Your OpenAPI api-key.
+	 */
 	public FileApi(String openAiToken) {
-		this(openAiToken, HTTPS_API_OPENAI_COM);
+		this(DEFAULT_BASE_URL, openAiToken);
 	}
 
-	public FileApi(String openAiToken, String baseUrl) {
+	/**
+	 * Create new FileApi instance.
+	 * @param baseUrl the api base url.
+	 * @param openAiToken Your OpenAPI api-key.
+	 */
+	public FileApi(String baseUrl, String openAiToken) {
 		this.rest = RestClient.create();
 		this.openAiToken = openAiToken;
 		this.jsonContentHeaders = headers -> {
@@ -73,7 +82,7 @@ public class FileApi {
 		this.url = suffix -> baseUrl + suffix;
 	}
 
-	private String url(String resource) {
+	private String base(String resource) {
 		return this.url.apply(resource);
 	}
 
@@ -86,7 +95,7 @@ public class FileApi {
 	public DataList<Data.File> listFiles(File.Purpose purpose) {
 
 		return this.rest.get()
-				.uri(url("/v1/files?purpose={purpose}"), purpose.getText())
+				.uri(base("/v1/files?purpose={purpose}"), purpose.getText())
 				.headers(this.jsonContentHeaders)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -105,7 +114,7 @@ public class FileApi {
 	 * @param purpose The intended purpose of the uploaded file. Use "fine-tune" for Fine-tuning and "assistants" for
 	 * Assistants and Messages.
 	 *
-	 * @return The uploaded {@link FileApi.File} object.
+	 * @return The uploaded {@link Data.File} object.
 	 */
 	public Data.File uploadFile(Resource file, File.Purpose purpose) {
 
@@ -114,7 +123,7 @@ public class FileApi {
 		multipartBody.add("file", file);
 
 		return this.rest.post()
-				.uri(url("/v1/files"))
+				.uri(base("/v1/files"))
 				.headers(this.multipartContentHeaders)
 				.body(multipartBody)
 				.retrieve()
@@ -130,7 +139,7 @@ public class FileApi {
 	 */
 	public Data.DeletionStatus deleteFile(String fileId) {
 		return this.rest.delete()
-				.uri(url("/v1/files/{file_id}"), fileId)
+				.uri(base("/v1/files/{file_id}"), fileId)
 				.headers(this.jsonContentHeaders)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -138,14 +147,14 @@ public class FileApi {
 	}
 
 	/**
-	 * Retrieve the {@link FileApi.File} object matching the specified ID.
+	 * Retrieve the {@link Data.File} object matching the specified ID.
 	 *
 	 * @param fileId The ID of the file to use for this request.
-	 * @return Return the {@link FileApi.File}.
+	 * @return Return the {@link Data.File}.
 	 */
 	public Data.File retrieveFile(String fileId) {
 		return this.rest.get()
-				.uri(url("/v1/files/{file_id}"), fileId)
+				.uri(base("/v1/files/{file_id}"), fileId)
 				.headers(this.jsonContentHeaders)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -160,7 +169,7 @@ public class FileApi {
 	 */
 	public byte[] retrieveFileContent(String fileId) {
 		return this.rest.get()
-				.uri(url("/v1/files/{file_id}/content"), fileId)
+				.uri(base("/v1/files/{file_id}/content"), fileId)
 				.headers(headers -> {
 					headers.setBearerAuth(this.openAiToken);
 				})
@@ -169,6 +178,9 @@ public class FileApi {
 				.body(byte[].class);
 	}
 
+	/**
+	 * Error handler assigned to all REST call to detect and report API call errors.
+	 */
 	final ResponseErrorHandler responseErrorHandler = new ResponseErrorHandler() {
 		@Override
 		public boolean hasError(ClientHttpResponse response) throws IOException {
@@ -188,34 +200,37 @@ public class FileApi {
 		}
 	};
 
+	/**
+	 * Exception throw if FileApi error is detected.
+	 */
 	public static class FileApiException extends RuntimeException {
 		public FileApiException(String message) {
 			super(message);
 		};
 	}
 
-	public static void main(String[] args) throws IOException {
+	// public static void main(String[] args) throws IOException {
 
-		FileApi fileApi = new FileApi(System.getenv("OPENAI_API_KEY"));
+	// FileApi fileApi = new FileApi(System.getenv("OPENAI_API_KEY"));
 
-		DataList<File> files = fileApi.listFiles(File.Purpose.ASSISTANTS);
+	// DataList<File> files = fileApi.listFiles(File.Purpose.ASSISTANTS);
 
-		System.out.println(files);
+	// System.out.println(files);
 
-		Resource content = new DefaultResourceLoader().getResource("classpath:/text.txt");
+	// Resource content = new DefaultResourceLoader().getResource("classpath:/text.txt");
 
-		Data.File file = fileApi.uploadFile(content, File.Purpose.ASSISTANTS);
+	// Data.File file = fileApi.uploadFile(content, File.Purpose.ASSISTANTS);
 
-		System.out.println(file);
+	// System.out.println(file);
 
-		System.out.println(fileApi.retrieveFile(file.id()));
+	// System.out.println(fileApi.retrieveFile(file.id()));
 
-		System.out.println(new String(fileApi.retrieveFileContent(file.id())));
+	// System.out.println(new String(fileApi.retrieveFileContent(file.id())));
 
-		fileApi.listFiles(File.Purpose.ASSISTANTS).data().stream().forEach(f -> fileApi.deleteFile(f.id()));
+	// fileApi.listFiles(File.Purpose.ASSISTANTS).data().stream().forEach(f -> fileApi.deleteFile(f.id()));
 
-		System.out.println(fileApi.listFiles(File.Purpose.ASSISTANTS).data().size());
+	// System.out.println(fileApi.listFiles(File.Purpose.ASSISTANTS).data().size());
 
-	}
+	// }
 
 }

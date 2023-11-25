@@ -21,24 +21,30 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logaritex.ai.api.Data.ImageContent.ImageFile;
 import com.logaritex.ai.api.Data.ListRequest.Order;
 import com.logaritex.ai.api.Data.Run.RequiredAction;
-import com.logaritex.ai.api.Data.Run.Status;
 import com.logaritex.ai.api.Data.Run.RequiredAction.SubmitToolOutputs;
+import com.logaritex.ai.api.Data.Run.RunError;
+import com.logaritex.ai.api.Data.Run.Status;
 import com.logaritex.ai.api.Data.RunStep.Error;
 import com.logaritex.ai.api.Data.RunStep.RunStepStatus;
 import com.logaritex.ai.api.Data.RunStep.RunStepType;
 import com.logaritex.ai.api.Data.TextContent.Text;
+import com.logaritex.ai.api.Data.ToolOutputs.ToolOutput;
 
 /**
+ * the {@link Data} defines all domain objects such as request, responses, enum used by the {@link AssistantApi} and
+ * {@link FileApi} clients.
  *
  * @author Christian Tzolov
  */
 public class Data {
 
 	/**
-	 * Assistant tool.
+	 * Represents an Assistant tool.
 	 */
 	public static class Tool {
 
@@ -64,8 +70,14 @@ public class Data {
 		}
 	}
 
+	/**
+	 * Function calling Assistant Tool
+	 */
 	public static class FunctionTool extends Data.Tool {
 
+		/**
+		 * Tool function definition
+		 */
 		public static class Function {
 
 			/**
@@ -86,20 +98,58 @@ public class Data {
 			 */
 			private final Map<String, Object> parameters;
 
+			/**
+			 * Create tool function definition.
+			 *
+			 * @param description tool function description.
+			 * @param name tool function name.
+			 * @param parametersJsonSchema tool function schema as json.
+			 */
+			public Function(String description, String name, String parametersJsonSchema) {
+				this(description, name, parseSchema(parametersJsonSchema));
+			}
+
+			private static Map<String, Object> parseSchema(String parametersJsonSchema) {
+				try {
+					return new ObjectMapper().readValue(parametersJsonSchema,
+							new TypeReference<Map<String, Object>>() {
+							});
+				}
+				catch (Exception e) {
+					throw new RuntimeException("Failed to parse schema: " + parametersJsonSchema, e);
+				}
+			}
+
+			/**
+			 * Create tool function definition.
+			 *
+			 * @param description tool function description.
+			 * @param name tool function name.
+			 * @param parameters tool function schema as map.
+			 */
 			public Function(String description, String name, Map<String, Object> parameters) {
 				this.description = description;
 				this.name = name;
 				this.parameters = parameters;
 			}
 
+			/**
+			 * @return function's description.
+			 */
 			public String getDescription() {
 				return description;
 			}
 
+			/**
+			 * @return function's name.
+			 */
 			public String getName() {
 				return name;
 			}
 
+			/**
+			 * @return function's parameters.
+			 */
 			public Map<String, Object> getParameters() {
 				return parameters;
 			}
@@ -107,11 +157,18 @@ public class Data {
 
 		private final Function function;
 
+		/**
+		 * Create function tool.
+		 * @param function function definition.
+		 */
 		public FunctionTool(Function function) {
 			super(Tool.Type.function);
 			this.function = function;
 		}
 
+		/**
+		 * @return Returns Tool's function definition.
+		 */
 		public Function getFunction() {
 			return function;
 		}
@@ -140,6 +197,7 @@ public class Data {
 	}
 
 	/**
+	 * Assistant creation request.
 	 *
 	 * @param model ID of the model to use.
 	 * @param name The name of the assistant. The maximum length is 256 characters.
@@ -154,10 +212,16 @@ public class Data {
 	 * values can be a maximum of 512 characters long.
 	 */
 	@JsonInclude(Include.NON_NULL)
-	public record RequestBody(String model, String name, String description, String instructions, List<Tool> tools,
+	public record AssistantRequestBody(String model, String name, String description, String instructions,
+			List<Tool> tools,
 			List<String> file_ids, Map<String, String> metadata) {
 
-		public RequestBody(String model, String instructions) {
+		/**
+		 * Assistant creation request.
+		 * @param model ID of the model to use.
+		 * @param instructions The system instructions that the assistant uses. The maximum length is 32768 characters.
+		 */
+		public AssistantRequestBody(String model, String instructions) {
 			this(model, null, null, instructions, List.of(), List.of(), Map.of());
 		}
 	}
@@ -176,12 +240,25 @@ public class Data {
 	public record File(String id, Integer bytes, Long created_at, String filename, String object, String purpose,
 			String status, String status_details) {
 
+		/**
+		 * File purpose.
+		 */
 		public enum Purpose {
 
-			FINE_TUNE("fine-tune"), ASSISTANTS("assistants");
+			/**
+			 * File to be used for fine tunning.
+			 */
+			FINE_TUNE("fine-tune"),
+			/**
+			 * File to be used by the Assistant.
+			 */
+			ASSISTANTS("assistants");
 
 			private final String text;
 
+			/**
+			 * @return purpose as string.
+			 */
 			public String getText() {
 				return text;
 			}
@@ -194,28 +271,61 @@ public class Data {
 
 	}
 
+	/**
+	 * Deletion status.
+	 */
 	public record DeletionStatus(String id, String object, Boolean deleted) {
 	}
 
+	/**
+	 * Query request.
+	 */
 	public record ListRequest(Order order, Integer limit, String before, String after) {
 
+		/**
+		 * Query order
+		 */
 		public enum Order {
-			asc, desc
+			/**
+			 * Ascendant order.
+			 */
+			asc,
+			/**
+			 * Descendant order.
+			 */
+			desc
 		}
 
+		/**
+		 * Query request.
+		 */
 		public ListRequest() {
 			this(Order.desc, 20, "", "");
 		}
 
+		/**
+		 * Query request.
+		 * @param order query order.
+		 */
 		public ListRequest(Order order) {
 			this(order, 20, "", "");
 		}
 
+		/**
+		 * Query request.
+		 * @param order query order.
+		 * @param limit max response size.
+		 */
 		public ListRequest(Order order, int limit) {
 			this(order, limit, "", "");
 		}
 	}
 
+	/**
+	 * Common list wrapper for API's list responses.
+	 *
+	 * @param <T> list entity type.
+	 */
 	public record DataList<T>(String object, List<T> data, String first_id, String last_id,
 			boolean has_mode) {
 	}
@@ -253,7 +363,14 @@ public class Data {
 	 * Role of the message producer entity.
 	 */
 	public enum Role {
-		user, assistant
+		/**
+		 * Use message role.
+		 */
+		user,
+		/**
+		 * Assistant message role.
+		 */
+		assistant
 	}
 
 	/**
@@ -266,24 +383,46 @@ public class Data {
 	 * @param role The entity that produced the message. One of 'user' or 'assistant'.
 	 * @param content The content of the message in array of text {@link TextContent} and/or images
 	 * {@link ImageContent}.
-	 * @param assistantId If applicable, the ID of the {@link Assistant} that authored this message.
+	 * @param assistant_id If applicable, the ID of the {@link Assistant} that authored this message.
 	 * @param run_id If applicable, the ID of the run associated with the authoring of this message.
-	 * @param file_dis A list of {@link File} IDs that the assistant should use. Useful for tools like retrieval and
+	 * @param file_ids A list of {@link File} IDs that the assistant should use. Useful for tools like retrieval and
 	 * code_interpreter that can access files. A maximum of 10 files can be attached to a message.
 	 * @param metadata Set of 16 key-value pairs that can be attached to an object. This can be useful for storing
 	 * additional information about the object in a structured format. Keys can be a maximum of 64 characters long and
 	 * values can be a maximum of 512 characters long.
 	 */
 	public record Message<T>(String id, String object, Long created_at, String thread_id, Role role, List<T> content,
-			String assistantId, String run_id, List<String> file_ids, Map<String, String> metadata) {
+			String assistant_id, String run_id, List<String> file_ids, Map<String, String> metadata) {
 	}
 
+	/**
+	 * Text message content.
+	 *
+	 * @param type should be set to 'text'.
+	 * @param text text message content.
+	 */
 	public record TextContent(String type, Text text) {
+		/**
+		 * Content's text.
+		 * @param value Content's string text value. Can contain placeholders to be replaced with annotation values.
+		 * @param annotations Content's annotations.
+		 */
 		public record Text(String value, List<Map<String, Object>> annotations) {
 		}
 	}
 
+	/**
+	 * Message image content.
+	 *
+	 * @param type should be set to 'image'.
+	 * @param image_file image file id.
+	 */
 	public record ImageContent(String type, ImageFile image_file) {
+		/**
+		 * Image file reference.
+		 *
+		 * @param file_id File id.
+		 */
 		public record ImageFile(String file_id) {
 		}
 	}
@@ -292,8 +431,7 @@ public class Data {
 	 * Message creation request.
 	 *
 	 * @param role The entity that produced the message. One of 'user' or 'assistant'.
-	 * @param content The content of the message in array of text and/or images.
-	 * @param file_dis A list of {@link File} IDs that the assistant should use. Useful for tools like retrieval and
+	 * @param file_ids A list of {@link File} IDs that the assistant should use. Useful for tools like retrieval and
 	 * code_interpreter that can access files. A maximum of 10 files can be attached to a message.
 	 * @param metadata Set of 16 key-value pairs that can be attached to an object. This can be useful for storing
 	 * additional information about the object in a structured format. Keys can be a maximum of 64 characters long and
@@ -302,6 +440,11 @@ public class Data {
 	@JsonInclude(Include.NON_NULL)
 	public record MessageRequest(Role role, String content, List<String> file_ids, Map<String, String> metadata) {
 
+		/**
+		 * Message creation request.
+		 * @param role The entity that produced the message. One of 'user' or 'assistant'.
+		 * @param content Message text content.
+		 */
 		public MessageRequest(Role role, String content) {
 			this(role, content, null, null);
 		}
@@ -339,6 +482,9 @@ public class Data {
 			Long cancelled_at, Long failed_at, Long completed_at, String model, String instructions, List<Tool> tools,
 			List<String> file_ids, Map<String, String> metadata) {
 
+		/**
+		 * Run status.
+		 */
 		public enum Status {
 			queued, in_progress, requires_action, cancelling, cancelled, failed, completed, expired
 		};
@@ -382,14 +528,14 @@ public class Data {
 
 			}
 		}
-	}
 
-	/**
-	 *
-	 * @param code One of server_error or rate_limit_exceeded.
-	 * @param message A human-readable description of the error.
-	 */
-	public record RunError(String code, String message) {
+		/**
+		 *
+		 * @param code One of server_error or rate_limit_exceeded.
+		 * @param message A human-readable description of the error.
+		 */
+		public record RunError(String code, String message) {
+		}
 	}
 
 	/**
@@ -488,14 +634,21 @@ public class Data {
 	}
 
 	/**
-	 * Tool for which the outputs are being submitted.
+	 * Holder for a list of tool outputs
 	 *
-	 * @param tool_call_id The ID of the tool call in the 'required_action' object within the run object the output is
-	 * being submitted for.
-	 * @param output The output of the tool call to be submitted to continue the run.
+	 * @param tool_outputs List of tool outputs.
 	 */
-	public record ToolOutput(String tool_call_id, String output) {
+	public record ToolOutputs(List<ToolOutput> tool_outputs) {
+		/**
+		 * Tool for which the outputs are being submitted.
+		 *
+		 * @param tool_call_id The ID of the tool call in the 'required_action' object within the run object the output
+		 * is being submitted for.
+		 * @param output The output of the tool call to be submitted to continue the run.
+		 */
+		public record ToolOutput(String tool_call_id, String output) {
 
+		}
 	}
 
 	/**

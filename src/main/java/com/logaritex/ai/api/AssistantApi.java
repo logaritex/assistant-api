@@ -17,7 +17,6 @@
 package com.logaritex.ai.api;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -39,51 +38,72 @@ import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 
 /**
+ * The AssistantApi provides a light, Java client implementation of the following OpenAI APIs:
+ *
+ * <pre>
+ *- Assistants: https://platform.openai.com/docs/api-reference/assistants
+ *- Threads: https://platform.openai.com/docs/api-reference/threads
+ *- Messages: https://platform.openai.com/docs/api-reference/messages
+ *- Runs: https://platform.openai.com/docs/api-reference/runs
+ * </pre>
  *
  * @author Christian Tzolov
  */
 public class AssistantApi {
 
-	private static final String HTTPS_API_OPENAI_COM = "https://api.openai.com";
+	private static final String OPEN_AI_BETA = "OpenAI-Beta";
+	private static final String ASSISTANTS_V1 = "assistants=v1";
+	private static final String DEFAULT_BASE_URL = "https://api.openai.com";
 
 	private final RestClient rest;
-	private final Consumer<HttpHeaders> jsonContentHeaders;
+	private final Consumer<HttpHeaders> headers;
 	private final String openAiToken;
 
 	private final Function<String, String> url;
 
+	/**
+	 * Create an new assistant api.
+	 *
+	 * @param openAiToken OpenAI apiKey.
+	 */
 	public AssistantApi(String openAiToken) {
-		this(openAiToken, HTTPS_API_OPENAI_COM);
+		this(DEFAULT_BASE_URL, openAiToken);
 	}
 
-	public AssistantApi(String openAiToken, String baseUrl) {
+	/**
+	 * Create an new assistant api.
+	 *
+	 * @param baseUrl api base URL
+	 * @param openAiToken OpenAI apiKey.
+	 */
+	public AssistantApi(String baseUrl, String openAiToken) {
 		this.rest = RestClient.create();
 		this.openAiToken = openAiToken;
-		this.jsonContentHeaders = headers -> {
-			headers.set("OpenAI-Beta", "assistants=v1");
+		this.headers = headers -> {
+			headers.set(OPEN_AI_BETA, ASSISTANTS_V1);
 			headers.setBearerAuth(this.openAiToken);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 		};
 		this.url = suffix -> baseUrl + suffix;
 	}
 
-	private String url(String resource) {
+	private String base(String resource) {
 		return this.url.apply(resource);
 	}
 
 	/**
 	 * Create an assistant with a model and instructions.
 	 *
-	 * @param requestBody {@link Data.RequestBody} to specify required assistant.
+	 * @param requestBody {@link Data.AssistantRequestBody} to specify required assistant.
 	 * @return Returns an {@link Data.Assistant} object.
 	 */
-	public Data.Assistant createAssistant(Data.RequestBody requestBody) {
+	public Data.Assistant createAssistant(Data.AssistantRequestBody requestBody) {
 
 		Assert.notNull(requestBody, "The request body can not be null.");
 
 		return this.rest.post()
-				.uri(url("/v1/assistants"))
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/assistants"))
+				.headers(this.headers)
 				.body(requestBody)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -101,8 +121,8 @@ public class AssistantApi {
 		Assert.hasText(assistantId, "Assistant ID can not be empty.");
 
 		return this.rest.get()
-				.uri(url("/v1/assistants/{assistant_id}"), assistantId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/assistants/{assistant_id}"), assistantId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Assistant.class);
@@ -111,18 +131,18 @@ public class AssistantApi {
 	/**
 	 * Modifies an assistant.
 	 *
-	 * @param requestBody {@link Data.RequestBody} with assistant modifications.
+	 * @param requestBody {@link Data.AssistantRequestBody} with assistant modifications.
 	 * @param assistantId The ID of the assistant to modify.
 	 * @return Returns the modified {@link Data.Assistant} object.
 	 */
-	public Data.Assistant modifyAssistant(Data.RequestBody requestBody, String assistantId) {
+	public Data.Assistant modifyAssistant(Data.AssistantRequestBody requestBody, String assistantId) {
 
 		Assert.notNull(requestBody, "The request body can not be null.");
 		Assert.hasText(assistantId, "Assistant ID can not be empty.");
 
 		return this.rest.post()
-				.uri(url("/v1/assistants/{assistant_id}"), assistantId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/assistants/{assistant_id}"), assistantId)
+				.headers(this.headers)
 				.body(requestBody)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -138,9 +158,9 @@ public class AssistantApi {
 	public DataList<Data.Assistant> listAssistants(ListRequest listRequest) {
 
 		return this.rest.get()
-				.uri(url("/v1/assistants?order={order}&limit={limit}&before={before}&after={after}"),
+				.uri(base("/v1/assistants?order={order}&limit={limit}&before={before}&after={after}"),
 						listRequest.order(), listRequest.limit(), listRequest.before(), listRequest.after())
-				.headers(this.jsonContentHeaders)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -158,8 +178,8 @@ public class AssistantApi {
 		Assert.hasText(assistantId, "Assistant ID can not be empty.");
 
 		return this.rest.delete()
-				.uri(url("/v1/assistants/{assistant_id}"), assistantId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/assistants/{assistant_id}"), assistantId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.DeletionStatus.class);
@@ -178,8 +198,8 @@ public class AssistantApi {
 		Assert.hasText(fileId, "File ID can not be empty.");
 
 		return this.rest.post()
-				.uri(url("/v1/assistants/{assistant_id}/files"), assistantId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/assistants/{assistant_id}/files"), assistantId)
+				.headers(this.headers)
 				.body(Map.of("file_id", fileId))
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -197,8 +217,8 @@ public class AssistantApi {
 		Assert.hasText(fileId, "File ID can not be empty.");
 
 		return this.rest.get()
-				.uri(url("/v1/assistants/{assistant_id}/files/{file_id}"), assistantId, fileId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/assistants/{assistant_id}/files/{file_id}"), assistantId, fileId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.File.class);
@@ -216,8 +236,8 @@ public class AssistantApi {
 		Assert.hasText(fileId, "File ID can not be empty.");
 
 		return this.rest.delete()
-				.uri(url("/v1/assistants/{assistant_id}/files/{file_id}"), assistantId, fileId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/assistants/{assistant_id}/files/{file_id}"), assistantId, fileId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.DeletionStatus.class);
@@ -232,9 +252,9 @@ public class AssistantApi {
 	public DataList<Data.File> listAssistantFiles(String assistantId) {
 		Assert.hasText(assistantId, "Assistant ID can not be empty.");
 		return this.rest.get()
-				.uri(url("/v1/assistants/{assistant_id}/files"),
+				.uri(base("/v1/assistants/{assistant_id}/files"),
 						assistantId)
-				.headers(this.jsonContentHeaders)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -246,16 +266,16 @@ public class AssistantApi {
 	/**
 	 * Create threads that assistants can interact with.
 	 *
-	 * @param <T>
-	 * @param createRequest
+	 * @param <T> bla
+	 * @param createRequest Thread creation request object.
 	 * @return Returns a thread object.
 	 */
 	public <T> Data.Thread createThread(ThreadRequest<T> createRequest) {
 		Assert.notNull(createRequest, "Thread request can not be null.");
 
 		return this.rest.post()
-				.uri(url("/v1/threads"))
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads"))
+				.headers(this.headers)
 				.body(createRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -272,8 +292,8 @@ public class AssistantApi {
 		Assert.hasText(threadId, "threadId can not be empty.");
 
 		return this.rest.get()
-				.uri(url("/v1/threads/{thread_id}"), threadId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}"), threadId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Thread.class);
@@ -282,7 +302,7 @@ public class AssistantApi {
 	/**
 	 * Modifies a thread.
 	 *
-	 * @param <T>
+	 * @param <T> generics.
 	 * @param modifyRequest modify {@link Data.ThreadRequest} body
 	 * @param threadId The ID of the thread to modify. Only the metadata can be modified.
 	 * @return Returns tTe modified thread object matching the specified ID.
@@ -292,21 +312,26 @@ public class AssistantApi {
 		Assert.hasText(threadId, "threadId can not be empty.");
 
 		return this.rest.post()
-				.uri(url("/v1/threads/{thread_id}"), threadId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}"), threadId)
+				.headers(this.headers)
 				.body(modifyRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Thread.class);
 	}
 
+	/**
+	 * List available treads.
+	 * @param listRequest query request.
+	 * @return list of threads that satisfy the query request.
+	 */
 	public DataList<Data.Thread> listThreads(ListRequest listRequest) {
 		Assert.notNull(listRequest, "The listRequest can not be null");
 
 		return this.rest.get()
-				.uri(url("/v1/threads?order={order}&limit={limit}&before={before}&after={after}"),
+				.uri(base("/v1/threads?order={order}&limit={limit}&before={before}&after={after}"),
 						listRequest.order(), listRequest.limit(), listRequest.before(), listRequest.after())
-				.headers(this.jsonContentHeaders)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -322,8 +347,8 @@ public class AssistantApi {
 	public Data.DeletionStatus deleteThread(String threadId) {
 		Assert.hasText(threadId, "threadId can not be empty.");
 		return this.rest.delete()
-				.uri(url("/v1/threads/{thread_id}"), threadId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}"), threadId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.DeletionStatus.class);
@@ -335,16 +360,16 @@ public class AssistantApi {
 	/**
 	 * Create a message.
 	 *
-	 * @param <T>
-	 * @param messageRequest
+	 * @param <T> Message content type.
+	 * @param messageRequest Message creation request.
 	 * @param threadId The ID of the {@link Data.Thread} to create a message for.
 	 * @return Returns a {@link Data.Message} object.
 	 */
 	public <T> Data.Message<T> createMessage(Data.MessageRequest messageRequest, String threadId) {
 		Assert.hasText(threadId, "threadId can not be empty.");
 		return this.rest.post()
-				.uri(url("/v1/threads/{thread_id}/messages"), threadId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}/messages"), threadId)
+				.headers(this.headers)
 				.body(messageRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -355,7 +380,7 @@ public class AssistantApi {
 	/**
 	 * Retrieve a message.
 	 *
-	 * @param <T>
+	 * @param <T> Message content type.
 	 * @param threadId The ID of the thread to which this message belongs.
 	 * @param messageId The ID of the message to retrieve.
 	 * @return Returns the message object matching the specified ID.
@@ -365,14 +390,23 @@ public class AssistantApi {
 		Assert.hasText(messageId, "messageId can not be empty.");
 
 		return this.rest.get()
-				.uri(url("/v1/threads/{thread_id}/messages/{message_id}"), threadId, messageId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}/messages/{message_id}"), threadId, messageId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
 				});
 	}
 
+	/**
+	 * Modifies a message.
+	 *
+	 * @param <T> Message content type.
+	 * @param messageRequest Message Request body.
+	 * @param threadId The ID of the thread to which this message belongs.
+	 * @param messageId The ID of the message to modify.
+	 * @return The modified message object.
+	 */
 	public <T> Data.Message<T> modifyMessage(Data.MessageRequest messageRequest, String threadId,
 			String messageId) {
 		Assert.notNull(messageRequest, "The 'messageRequest' can not be null");
@@ -380,8 +414,8 @@ public class AssistantApi {
 		Assert.hasText(messageId, "The 'messageId' can not be empty.");
 
 		return this.rest.post()
-				.uri(url("/v1/threads/{thread_id}/messages/{message_id}"), threadId, messageId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}/messages/{message_id}"), threadId, messageId)
+				.headers(this.headers)
 				.body(messageRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -389,14 +423,22 @@ public class AssistantApi {
 				});
 	}
 
+	/**
+	 * Returns a list of messages for a given thread.
+	 *
+	 * @param <T> Message content type.
+	 * @param listRequest Query parameters
+	 * @param threadId The ID of the thread the messages belong to.
+	 * @return A list of message objects.
+	 */
 	public <T> DataList<Data.Message<T>> listMessages(ListRequest listRequest, String threadId) {
 		Assert.notNull(listRequest, "The listRequest can not be null");
 		Assert.hasText(threadId, "The threadId can not be empty.");
 
 		return this.rest.get()
-				.uri(url("/v1/threads/{thread_id}/messages?order={order}&limit={limit}&before={before}&after={after}"),
+				.uri(base("/v1/threads/{thread_id}/messages?order={order}&limit={limit}&before={before}&after={after}"),
 						threadId, listRequest.order(), listRequest.limit(), listRequest.before(), listRequest.after())
-				.headers(this.jsonContentHeaders)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -418,8 +460,8 @@ public class AssistantApi {
 		Assert.notNull(runRequest, "The runRequest can not be null.");
 
 		return this.rest.post()
-				.uri(url("/v1/threads/{thread_id}/runs"), threadId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}/runs"), threadId)
+				.headers(this.headers)
 				.body(runRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -437,8 +479,8 @@ public class AssistantApi {
 		Assert.hasText(threadId, "The threadId can not be empty.");
 		Assert.hasText(runId, "The runId threadId can not be empty.");
 		return this.rest.get()
-				.uri(url("/v1/threads/{thread_id}/runs/{run_id}"), threadId, runId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}/runs/{run_id}"), threadId, runId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Run.class);
@@ -458,8 +500,8 @@ public class AssistantApi {
 		Assert.notNull(metadata, "The metadata can not be null.");
 
 		return this.rest.post()
-				.uri(url("/v1/threads/{thread_id}/runs/{run_id}"), threadId, runId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}/runs/{run_id}"), threadId, runId)
+				.headers(this.headers)
 				.body(metadata)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -470,7 +512,7 @@ public class AssistantApi {
 	 * Returns a list of runs belonging to a thread.
 	 *
 	 * @param threadId The ID of the thread the run belongs to.
-	 * @param listRequest
+	 * @param listRequest run query list parameters.
 	 * @return Returns a list of run objects.
 	 */
 	public DataList<Data.Run> listRuns(String threadId, ListRequest listRequest) {
@@ -478,9 +520,9 @@ public class AssistantApi {
 		Assert.notNull(listRequest, "The listRequest can not be null.");
 
 		return this.rest.get()
-				.uri(url("/v1/threads/{thread_id}/runs?order={order}&limit={limit}&before={before}&after={after}"),
+				.uri(base("/v1/threads/{thread_id}/runs?order={order}&limit={limit}&before={before}&after={after}"),
 						threadId, listRequest.order(), listRequest.limit(), listRequest.before(), listRequest.after())
-				.headers(this.jsonContentHeaders)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -495,17 +537,18 @@ public class AssistantApi {
 	 *
 	 * @param threadId The ID of the {@link Data.Thread} to which this run belongs.
 	 * @param runId The ID of the {@link Data.Run} that requires the tool output submission.
+	 * @param submitToolOutputs A list of tools for which the outputs are being submitted.
 	 * @return The modified {@link Data.Run} object matching the specified ID.
 	 */
-	public Data.Run submitToolOutputsToRun(String threadId, String runId, List<Data.ToolOutput> requestBody) {
+	public Data.Run submitToolOutputsToRun(String threadId, String runId, Data.ToolOutputs submitToolOutputs) {
 		Assert.hasText(threadId, "The threadId can not be empty.");
 		Assert.hasText(runId, "The runId can not be empty.");
-		Assert.notNull(requestBody, "The requestBody can not be null.");
+		Assert.notNull(submitToolOutputs, "The requestBody can not be null.");
 
 		return this.rest.post()
-				.uri(url("/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs"), threadId, runId)
-				.headers(this.jsonContentHeaders)
-				.body(requestBody)
+				.uri(base("/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs"), threadId, runId)
+				.headers(this.headers)
+				.body(submitToolOutputs)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Run.class);
@@ -523,8 +566,8 @@ public class AssistantApi {
 		Assert.hasText(runId, "The runId can not be empty.");
 
 		return this.rest.post()
-				.uri(url("/v1/threads/{thread_id}/runs/{run_id}/cancel"), threadId, runId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}/runs/{run_id}/cancel"), threadId, runId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Run.class);
@@ -533,16 +576,16 @@ public class AssistantApi {
 	/**
 	 * Create a thread and run it in one request.
 	 *
-	 * @param <T>
-	 * @param runThreadRequest
+	 * @param <T> generics
+	 * @param runThreadRequest Thread and Run creation request.
 	 * @return Returns a {@link Data.Run} object.
 	 */
 	public <T> Data.Run createThreadAndRun(RunThreadRequest<T> runThreadRequest) {
 		Assert.notNull(runThreadRequest, "The runThreadRequest can not be null.");
 
 		return this.rest.post()
-				.uri(url("/v1/threads/runs"))
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/runs"))
+				.headers(this.headers)
 				.body(runThreadRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -555,8 +598,8 @@ public class AssistantApi {
 	 * Retrieves a {@link Data.RunStep}.
 	 *
 	 * @param threadId The ID of the thread to which the run and run step belongs.
-	 * @param runId The ID of the run to which the run step belongs.
 	 * @param runId The ID of the run step to retrieve.
+	 * @param stepId The ID of the step to retrieve.
 	 * @return The {@link Data.RunStep} object matching the specified ID.
 	 */
 	public Data.RunStep retrieveRunStep(String threadId, String runId, String stepId) {
@@ -565,8 +608,8 @@ public class AssistantApi {
 		Assert.hasText(stepId, "The stepId threadId can not be empty.");
 
 		return this.rest.get()
-				.uri(url("/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}"), threadId, runId, stepId)
-				.headers(this.jsonContentHeaders)
+				.uri(base("/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}"), threadId, runId, stepId)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.RunStep.class);
@@ -586,11 +629,11 @@ public class AssistantApi {
 		Assert.notNull(listRequest, "The listRequest can not be null.");
 
 		return this.rest.get()
-				.uri(url(
+				.uri(base(
 						"/v1/threads/{thread_id}/runs/{run_id}/steps?order={order}&limit={limit}&before={before}&after={after}"),
 						threadId, runId, listRequest.order(), listRequest.limit(), listRequest.before(),
 						listRequest.after())
-				.headers(this.jsonContentHeaders)
+				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
