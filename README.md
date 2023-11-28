@@ -179,11 +179,11 @@ Following examples will walk you thought the Assistant API using the Java Client
 
 The [Retrieval Tool](https://youtu.be/pq34V_V5j18?t=2014) expends the knowledge of the Assistant.
 
- The [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java) example creates an Assistant instructed as a SpringBoot expert that can answer related question.
+ The [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java) example creates an Assistant instructed as a SpringBoot expert that can answer related questions.
  The Retrieval Tool is enabled to augment the Assistant with knowledge from outside its model, such as proprietary product information or documents (e.g. the Spring Boot pdf docs).
  Once a doc files are uploaded and passed to the Assistant, OpenAI automatically chunks the documents, index and store the embeddings, and implement vector search to retrieve relevant content to answer user queries.
 
- Apparently the Retrieval Tool is OpenAI's build-in RAG. Currently it has very limited configuration capabilities:
+ Apparently the Retrieval Tool is OpenAI's built-in RAG. Currently it has very limited configuration capabilities:
 
  > Retrieval currently optimizes for quality by adding all relevant content to the context of model calls.
  > We plan to introduce other retrieval strategies to enable developers to choose a different tradeoff between retrieval quality and model usage cost.
