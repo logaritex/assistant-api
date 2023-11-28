@@ -44,7 +44,7 @@ import org.springframework.web.client.RestClient;
  */
 public class FileApi {
 
-	private static final String DEFAULT_BASE_URL = "https://api.openai.com";
+	public static final String DEFAULT_BASE_URL = "https://api.openai.com";
 
 	private final RestClient rest;
 	private final Consumer<HttpHeaders> jsonContentHeaders;
@@ -58,7 +58,7 @@ public class FileApi {
 	 * @param openAiToken Your OpenAPI api-key.
 	 */
 	public FileApi(String openAiToken) {
-		this(DEFAULT_BASE_URL, openAiToken);
+		this(DEFAULT_BASE_URL, openAiToken, RestClient.builder());
 	}
 
 	/**
@@ -66,8 +66,8 @@ public class FileApi {
 	 * @param baseUrl the api base url.
 	 * @param openAiToken Your OpenAPI api-key.
 	 */
-	public FileApi(String baseUrl, String openAiToken) {
-		this.rest = RestClient.create();
+	public FileApi(String baseUrl, String openAiToken, RestClient.Builder restClientBuilder) {
+		this.rest = restClientBuilder.build();
 		this.openAiToken = openAiToken;
 		this.jsonContentHeaders = headers -> {
 			headers.setBearerAuth(openAiToken);
@@ -208,29 +208,4 @@ public class FileApi {
 			super(message);
 		};
 	}
-
-	// public static void main(String[] args) throws IOException {
-
-	// FileApi fileApi = new FileApi(System.getenv("OPENAI_API_KEY"));
-
-	// DataList<File> files = fileApi.listFiles(File.Purpose.ASSISTANTS);
-
-	// System.out.println(files);
-
-	// Resource content = new DefaultResourceLoader().getResource("classpath:/text.txt");
-
-	// Data.File file = fileApi.uploadFile(content, File.Purpose.ASSISTANTS);
-
-	// System.out.println(file);
-
-	// System.out.println(fileApi.retrieveFile(file.id()));
-
-	// System.out.println(new String(fileApi.retrieveFileContent(file.id())));
-
-	// fileApi.listFiles(File.Purpose.ASSISTANTS).data().stream().forEach(f -> fileApi.deleteFile(f.id()));
-
-	// System.out.println(fileApi.listFiles(File.Purpose.ASSISTANTS).data().size());
-
-	// }
-
 }

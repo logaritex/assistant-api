@@ -236,6 +236,8 @@ public class Data {
 	 * @param object The object type, which is always file.
 	 * @param purpose The intended purpose of the file. Supported values are fine-tune, fine-tune-results, assistants,
 	 * and assistants_output.
+	 * @param status file status.
+	 * @param status_details status details.
 	 */
 	public record File(String id, Integer bytes, Long created_at, String filename, String object, String purpose,
 			String status, String status_details) {
@@ -273,6 +275,10 @@ public class Data {
 
 	/**
 	 * Deletion status.
+	 *
+	 * @param id status id
+	 * @param object should be
+	 * @param deleted true if successful adn false otherwise.
 	 */
 	public record DeletionStatus(String id, String object, Boolean deleted) {
 	}
@@ -324,7 +330,12 @@ public class Data {
 	/**
 	 * Common list wrapper for API's list responses.
 	 *
-	 * @param <T> list entity type.
+	 * @param <T> Type of the entity in the data list.
+	 * @param object Must have value "list".
+	 * @param data List of entities.
+	 * @param first_id The ID of the first entity in the data list.
+	 * @param last_id The ID of the last entity in the data list.
+	 * @param has_mode ???
 	 */
 	public record DataList<T>(String object, List<T> data, String first_id, String last_id,
 			boolean has_mode) {
