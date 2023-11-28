@@ -1,0 +1,195 @@
+// Get run's steps
+// GET/v1/threads/thread_r2Juw5atbn8PxUY2BShsKdoo/runs/run_PKSStrIChDGM52NozOgpPTOd/steps
+{
+	"object": "list",
+	"data": [
+	  {
+		"id": "step_d38yleqgrRG89xZOI3A9yiII",
+		"object": "thread.run.step",
+		"created_at": 1701189080,
+		"run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+		"assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+		"thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+		"type": "message_creation",
+		"status": "completed",
+		"cancelled_at": null,
+		"completed_at": 1701189082,
+		"expires_at": null,
+		"failed_at": null,
+		"last_error": null,
+		"step_details": {
+		  "type": "message_creation",
+		  "message_creation": {
+			"message_id": "msg_FbczWI9TjlRzlfo4hSFTzvFe"
+		  }
+		}
+	  },
+	  {
+		"id": "step_mvJSpvqOj48nnRAml0V2Lu06",
+		"object": "thread.run.step",
+		"created_at": 1701189062,
+		"run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+		"assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+		"thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+		"type": "tool_calls",
+		"status": "completed",
+		"cancelled_at": null,
+		"completed_at": 1701189080,
+		"expires_at": null,
+		"failed_at": null,
+		"last_error": null,
+		"step_details": {
+		  "type": "tool_calls",
+		  "tool_calls": [
+			{
+			  "id": "call_xXgowUwXD3zow9ErHKPCy1Jc",
+			  "type": "code_interpreter",
+			  "code_interpreter": {
+				"input": "import matplotlib.pyplot as plt\r\n\r\n# Convert the 'date' column to datetime objects\r\ndf['date'] = pd.to_datetime(df['date'])\r\n\r\n# Sort the DataFrame by the date\r\ndf.sort_values('date', inplace=True)\r\n\r\n# Plot the closing prices over time\r\nplt.figure(figsize=(14, 7))\r\nplt.plot(df['date'], df['close'], label='MSFT Close Price')\r\nplt.title('MSFT Stock Closing Price Over Time')\r\nplt.xlabel('Date')\r\nplt.ylabel('Closing Price (USD)')\r\nplt.legend()\r\nplt.grid(True)\r\nplt.tight_layout()\r\n\r\n# Show the plot\r\nplt.show()",
+				"outputs": [
+				  {
+					"type": "image",
+					"image": {
+					  "file_id": "file-1ebZ3aCUuvaDTlIEeTjWpQeC"
+					}
+				  }
+				]
+			  }
+			}
+		  ]
+		}
+	  },
+	  {
+		"id": "step_dopLAtAPc5hUWQ6zddzwRisu",
+		"object": "thread.run.step",
+		"created_at": 1701189059,
+		"run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+		"assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+		"thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+		"type": "message_creation",
+		"status": "completed",
+		"cancelled_at": null,
+		"completed_at": 1701189062,
+		"expires_at": null,
+		"failed_at": null,
+		"last_error": null,
+		"step_details": {
+		  "type": "message_creation",
+		  "message_creation": {
+			"message_id": "msg_mW1STNzLT3Rxj3QDRqWcNqAH"
+		  }
+		}
+	  },
+	  {
+		"id": "step_TqQjXMONEwveiv36fcZq32fr",
+		"object": "thread.run.step",
+		"created_at": 1701189051,
+		"run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+		"assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+		"thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+		"type": "tool_calls",
+		"status": "completed",
+		"cancelled_at": null,
+		"completed_at": 1701189059,
+		"expires_at": null,
+		"failed_at": null,
+		"last_error": null,
+		"step_details": {
+		  "type": "tool_calls",
+		  "tool_calls": [
+			{
+			  "id": "call_g4kiigIJNUbiXXEmtzwZsUVk",
+			  "type": "code_interpreter",
+			  "code_interpreter": {
+				"input": "import pandas as pd\r\n\r\n# Load the data into a Pandas DataFrame\r\ndf = pd.read_csv(os.path.join(uploaded_file_path, uploaded_file_name))\r\n\r\n# Check the first few rows of the DataFrame to confirm it's loaded correctly\r\ndf.head()",
+				"outputs": [
+				  {
+					"type": "logs",
+					"logs": "         date   open  close\n0  2003-01-02  52.30  53.72\n1  2003-01-03  53.59  53.79\n2  2003-01-06  54.02  54.77\n3  2003-01-07  54.92  55.80\n4  2003-01-08  55.37  54.24"
+				  }
+				]
+			  }
+			}
+		  ]
+		}
+	  },
+	  {
+		"id": "step_DJaNap7Mbl1JM9Xero5OJRah",
+		"object": "thread.run.step",
+		"created_at": 1701189045,
+		"run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+		"assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+		"thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+		"type": "message_creation",
+		"status": "completed",
+		"cancelled_at": null,
+		"completed_at": 1701189051,
+		"expires_at": null,
+		"failed_at": null,
+		"last_error": null,
+		"step_details": {
+		  "type": "message_creation",
+		  "message_creation": {
+			"message_id": "msg_ZP7gWzdem8ws3xhMqPsSDqcT"
+		  }
+		}
+	  },
+	  {
+		"id": "step_ju7JAUyY7qLHfmKWl7AgiXU4",
+		"object": "thread.run.step",
+		"created_at": 1701189030,
+		"run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+		"assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+		"thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+		"type": "tool_calls",
+		"status": "completed",
+		"cancelled_at": null,
+		"completed_at": 1701189045,
+		"expires_at": null,
+		"failed_at": null,
+		"last_error": null,
+		"step_details": {
+		  "type": "tool_calls",
+		  "tool_calls": [
+			{
+			  "id": "call_u7BNzVfhbmAAeC5MV3XfpUwb",
+			  "type": "code_interpreter",
+			  "code_interpreter": {
+				"input": "# First, let's check the name of the uploaded file to ensure we have the right path\r\nimport os\r\n\r\nuploaded_file_path = '/mnt/data/'\r\nuploaded_file_name = None\r\n\r\nfor file_name in os.listdir(uploaded_file_path):\r\n    if file_name.startswith('file-'):\r\n        uploaded_file_name = file_name\r\n        break\r\n\r\n# To proceed, I'll try to open the file and determine its content type\r\nif uploaded_file_name:\r\n    with open(os.path.join(uploaded_file_path, uploaded_file_name), 'rb') as file:\r\n        content = file.read(512)  # reading first 512 bytes to determine the type of file\r\n        \r\nuploaded_file_name, content[:100]  # Return the file name and the first few bytes for format inspection",
+				"outputs": [
+				  {
+					"type": "logs",
+					"logs": "('file-9Un03jPHth76uyP9S6iqePsb',\n b'date,open,close\\n2003-01-02,52.3,53.72\\n2003-01-03,53.59,53.79\\n2003-01-06,54.02,54.77\\n2003-01-07,54.92')"
+				  }
+				]
+			  }
+			}
+		  ]
+		}
+	  },
+	  {
+		"id": "step_N04CtHoBFVkVmLwITV0WYMJj",
+		"object": "thread.run.step",
+		"created_at": 1701189027,
+		"run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+		"assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+		"thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+		"type": "message_creation",
+		"status": "completed",
+		"cancelled_at": null,
+		"completed_at": 1701189030,
+		"expires_at": null,
+		"failed_at": null,
+		"last_error": null,
+		"step_details": {
+		  "type": "message_creation",
+		  "message_creation": {
+			"message_id": "msg_gWjBxPsN8lenQBGjpcbsXdVH"
+		  }
+		}
+	  }
+	],
+	"first_id": "step_d38yleqgrRG89xZOI3A9yiII",
+	"last_id": "step_N04CtHoBFVkVmLwITV0WYMJj",
+	"has_more": false
+  }

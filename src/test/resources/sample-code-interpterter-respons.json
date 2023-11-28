@@ -1,0 +1,189 @@
+// Create a thread
+// POST/v1/threads
+{
+  "id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+  "object": "thread",
+  "created_at": 1701189024,
+  "metadata": {}
+},
+
+// Add a message
+// POST/v1/threads/thread_r2Juw5atbn8PxUY2BShsKdoo/messages
+
+// Request:
+{
+  "role": "user",
+  "content": "Use the attached file to generate a chart showing the MSFT stock value changing over time. "
+},
+// Responce
+{
+  "id": "msg_BUqMFZ4JLcWRlJCmxVYJImXw",
+  "object": "thread.message",
+  "created_at": 1701189025,
+  "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+  "role": "user",
+  "content": [
+    {
+      "type": "text",
+      "text": {
+        "value": "Use the attached file to generate a chart showing the MSFT stock value changing over time. ",
+        "annotations": []
+      }
+    }
+  ],
+  "file_ids": [],
+  "assistant_id": null,
+  "run_id": null,
+  "metadata": {}
+},
+
+// Run the thread
+// POST/v1/threads/thread_r2Juw5atbn8PxUY2BShsKdoo/runs
+
+// Request
+{
+  "assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B"
+},
+// Reponse
+{
+  "id": "run_PKSStrIChDGM52NozOgpPTOd",
+  "object": "thread.run",
+  "created_at": 1701189025,
+  "assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+  "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+  "status": "queued",
+  "started_at": null,
+  "expires_at": 1701189625,
+  "cancelled_at": null,
+  "failed_at": null,
+  "completed_at": null,
+  "last_error": null,
+  "model": "gpt-4-1106-preview",
+  "instructions": "You help users with finance and stock exchange questions.",
+  "tools": [
+    {
+      "type": "code_interpreter"
+    }
+  ],
+  "file_ids": [
+    "file-9Un03jPHth76uyP9S6iqePsb"
+  ],
+  "metadata": {}
+},
+
+// Get messages
+// GET/v1/threads/thread_r2Juw5atbn8PxUY2BShsKdoo/messages
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "msg_FbczWI9TjlRzlfo4hSFTzvFe",
+      "object": "thread.message",
+      "created_at": 1701189080,
+      "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "image_file",
+          "image_file": {
+            "file_id": "file-1ebZ3aCUuvaDTlIEeTjWpQeC"
+          }
+        },
+        {
+          "type": "text",
+          "text": {
+            "value": "Here is the chart showing the MSFT stock closing price changing over time, based on the data from the provided CSV file. You can see the trend of the stock price on this graph. If you need more details or further analysis, feel free to ask!",
+            "annotations": []
+          }
+        }
+      ],
+      "file_ids": [],
+      "assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+      "run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+      "metadata": {}
+    },
+    {
+      "id": "msg_mW1STNzLT3Rxj3QDRqWcNqAH",
+      "object": "thread.message",
+      "created_at": 1701189059,
+      "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": {
+            "value": "The CSV file has been successfully loaded into a DataFrame and it contains columns for the `date`, `open`, and `close` prices of the stock. Now, I'll proceed to create a chart showing the MSFT stock closing value changing over time.",
+            "annotations": []
+          }
+        }
+      ],
+      "file_ids": [],
+      "assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+      "run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+      "metadata": {}
+    },
+    {
+      "id": "msg_ZP7gWzdem8ws3xhMqPsSDqcT",
+      "object": "thread.message",
+      "created_at": 1701189045,
+      "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": {
+            "value": "The uploaded file seems to be a CSV (Comma-Separated Values) file, containing what looks like stock data with columns for `date`, `open`, and `close` prices. The first few rows show data for what appears to be the Microsoft (MSFT) stock with entries for specific dates.\n\nNext, I will read the CSV file into a DataFrame and then plot the closing price of MSFT over time. Let me do that now.",
+            "annotations": []
+          }
+        }
+      ],
+      "file_ids": [],
+      "assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+      "run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+      "metadata": {}
+    },
+    {
+      "id": "msg_gWjBxPsN8lenQBGjpcbsXdVH",
+      "object": "thread.message",
+      "created_at": 1701189027,
+      "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": {
+            "value": "First, let's take a look at the contents of the uploaded file to determine its format and structure. This will help us understand how to proceed with extracting the MSFT stock values and plotting them over time. I'll start by loading the contents of the file.",
+            "annotations": []
+          }
+        }
+      ],
+      "file_ids": [],
+      "assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+      "run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+      "metadata": {}
+    },
+    {
+      "id": "msg_BUqMFZ4JLcWRlJCmxVYJImXw",
+      "object": "thread.message",
+      "created_at": 1701189025,
+      "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": {
+            "value": "Use the attached file to generate a chart showing the MSFT stock value changing over time. ",
+            "annotations": []
+          }
+        }
+      ],
+      "file_ids": [],
+      "assistant_id": null,
+      "run_id": null,
+      "metadata": {}
+    }
+  ],
+  "first_id": "msg_FbczWI9TjlRzlfo4hSFTzvFe",
+  "last_id": "msg_BUqMFZ4JLcWRlJCmxVYJImXw",
+  "has_more": false
+}
