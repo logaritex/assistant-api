@@ -51,8 +51,8 @@ import org.springframework.web.client.RestClient;
  */
 public class AssistantApi {
 
-	private static final String OPEN_AI_BETA = "OpenAI-Beta";
-	private static final String ASSISTANTS_V1 = "assistants=v1";
+	public static final String OPEN_AI_BETA = "OpenAI-Beta";
+	public static final String ASSISTANTS_V1 = "assistants=v1";
 	private static final String DEFAULT_BASE_URL = "https://api.openai.com";
 
 	private final RestClient rest;
@@ -67,7 +67,7 @@ public class AssistantApi {
 	 * @param openAiToken OpenAI apiKey.
 	 */
 	public AssistantApi(String openAiToken) {
-		this(DEFAULT_BASE_URL, openAiToken);
+		this(DEFAULT_BASE_URL, openAiToken, RestClient.builder());
 	}
 
 	/**
@@ -76,8 +76,8 @@ public class AssistantApi {
 	 * @param baseUrl api base URL
 	 * @param openAiToken OpenAI apiKey.
 	 */
-	public AssistantApi(String baseUrl, String openAiToken) {
-		this.rest = RestClient.create();
+	public AssistantApi(String baseUrl, String openAiToken, RestClient.Builder restClientBuilder) {
+		this.rest = restClientBuilder.build();
 		this.openAiToken = openAiToken;
 		this.headers = headers -> {
 			headers.set(OPEN_AI_BETA, ASSISTANTS_V1);
