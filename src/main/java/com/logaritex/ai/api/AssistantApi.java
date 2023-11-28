@@ -51,8 +51,16 @@ import org.springframework.web.client.RestClient;
  */
 public class AssistantApi {
 
+	/**
+	 * OpenAI assistant api beta marker.
+	 */
 	public static final String OPEN_AI_BETA = "OpenAI-Beta";
+
+	/**
+	 * OpenAI assistant api version.
+	 */
 	public static final String ASSISTANTS_V1 = "assistants=v1";
+
 	private static final String DEFAULT_BASE_URL = "https://api.openai.com";
 
 	private final RestClient rest;
@@ -266,11 +274,10 @@ public class AssistantApi {
 	/**
 	 * Create threads that assistants can interact with.
 	 *
-	 * @param <T> bla
 	 * @param createRequest Thread creation request object.
 	 * @return Returns a thread object.
 	 */
-	public <T> Data.Thread createThread(ThreadRequest<T> createRequest) {
+	public Data.Thread createThread(ThreadRequest createRequest) {
 		Assert.notNull(createRequest, "Thread request can not be null.");
 
 		return this.rest.post()
@@ -302,12 +309,11 @@ public class AssistantApi {
 	/**
 	 * Modifies a thread.
 	 *
-	 * @param <T> generics.
 	 * @param modifyRequest modify {@link Data.ThreadRequest} body
 	 * @param threadId The ID of the thread to modify. Only the metadata can be modified.
 	 * @return Returns tTe modified thread object matching the specified ID.
 	 */
-	public <T> Data.Thread modifyThread(ThreadRequest<T> modifyRequest, String threadId) {
+	public Data.Thread modifyThread(ThreadRequest modifyRequest, String threadId) {
 		Assert.notNull(modifyRequest, "Thread request can not be null.");
 		Assert.hasText(threadId, "threadId can not be empty.");
 
@@ -360,12 +366,11 @@ public class AssistantApi {
 	/**
 	 * Create a message.
 	 *
-	 * @param <T> Message content type.
 	 * @param messageRequest Message creation request.
 	 * @param threadId The ID of the {@link Data.Thread} to create a message for.
 	 * @return Returns a {@link Data.Message} object.
 	 */
-	public <T> Data.Message<T> createMessage(Data.MessageRequest messageRequest, String threadId) {
+	public Data.Message createMessage(Data.MessageRequest messageRequest, String threadId) {
 		Assert.hasText(threadId, "threadId can not be empty.");
 		return this.rest.post()
 				.uri(base("/v1/threads/{thread_id}/messages"), threadId)
@@ -380,12 +385,11 @@ public class AssistantApi {
 	/**
 	 * Retrieve a message.
 	 *
-	 * @param <T> Message content type.
 	 * @param threadId The ID of the thread to which this message belongs.
 	 * @param messageId The ID of the message to retrieve.
 	 * @return Returns the message object matching the specified ID.
 	 */
-	public <T> Data.Message<T> retrieveMessage(String threadId, String messageId) {
+	public Data.Message retrieveMessage(String threadId, String messageId) {
 		Assert.hasText(threadId, "threadId can not be empty.");
 		Assert.hasText(messageId, "messageId can not be empty.");
 
@@ -401,13 +405,12 @@ public class AssistantApi {
 	/**
 	 * Modifies a message.
 	 *
-	 * @param <T> Message content type.
 	 * @param messageRequest Message Request body.
 	 * @param threadId The ID of the thread to which this message belongs.
 	 * @param messageId The ID of the message to modify.
 	 * @return The modified message object.
 	 */
-	public <T> Data.Message<T> modifyMessage(Data.MessageRequest messageRequest, String threadId,
+	public Data.Message modifyMessage(Data.MessageRequest messageRequest, String threadId,
 			String messageId) {
 		Assert.notNull(messageRequest, "The 'messageRequest' can not be null");
 		Assert.hasText(threadId, "The 'threadId' can not be empty.");
@@ -426,12 +429,11 @@ public class AssistantApi {
 	/**
 	 * Returns a list of messages for a given thread.
 	 *
-	 * @param <T> Message content type.
 	 * @param listRequest Query parameters
 	 * @param threadId The ID of the thread the messages belong to.
 	 * @return A list of message objects.
 	 */
-	public <T> DataList<Data.Message<T>> listMessages(ListRequest listRequest, String threadId) {
+	public DataList<Data.Message> listMessages(ListRequest listRequest, String threadId) {
 		Assert.notNull(listRequest, "The listRequest can not be null");
 		Assert.hasText(threadId, "The threadId can not be empty.");
 
@@ -576,11 +578,10 @@ public class AssistantApi {
 	/**
 	 * Create a thread and run it in one request.
 	 *
-	 * @param <T> generics
 	 * @param runThreadRequest Thread and Run creation request.
 	 * @return Returns a {@link Data.Run} object.
 	 */
-	public <T> Data.Run createThreadAndRun(RunThreadRequest<T> runThreadRequest) {
+	public Data.Run createThreadAndRun(RunThreadRequest runThreadRequest) {
 		Assert.notNull(runThreadRequest, "The runThreadRequest can not be null.");
 
 		return this.rest.post()

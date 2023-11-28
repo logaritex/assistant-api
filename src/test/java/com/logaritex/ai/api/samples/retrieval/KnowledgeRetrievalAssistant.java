@@ -76,7 +76,7 @@ public class KnowledgeRetrievalAssistant {
 
 		logger.info(" 3. Create an empty Thread (represents a session between your user and your application).");
 		// 3. Create an empty Thread (represents a session between your user and your application).
-		Data.Thread thread = assistantApi.createThread(new Data.ThreadRequest<>());
+		Data.Thread thread = assistantApi.createThread(new Data.ThreadRequest());
 
 		logger.info(" 4. Add a new user Message to the Thread.");
 		// 4. Add a new user Message to the Thread.
@@ -98,7 +98,7 @@ public class KnowledgeRetrievalAssistant {
 
 		logger.info("6. Retrieve thread's messages. Result contains all 'assistant' and 'user' messages.");
 		// 6. Retrieve thread's messages. Result contains all 'assistant' and 'user' messages.
-		Data.DataList<Data.Message<String>> messages = assistantApi.listMessages(
+		Data.DataList<Data.Message> messages = assistantApi.listMessages(
 				new Data.ListRequest(),
 				thread.id());
 
@@ -107,7 +107,7 @@ public class KnowledgeRetrievalAssistant {
 
 		logger.info("7. Extract only the assistant messages.");
 		// 7. Extract only the assistant messages.
-		List<Message<String>> assistantMessages = messages.data().stream().filter(m -> m.role() == Data.Role.assistant)
+		List<Message> assistantMessages = messages.data().stream().filter(m -> m.role() == Data.Role.assistant)
 				.toList();
 
 		System.out.println(assistantMessages);

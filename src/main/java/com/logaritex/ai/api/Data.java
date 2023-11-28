@@ -23,7 +23,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.logaritex.ai.api.Data.ImageContent.ImageFile;
+import com.logaritex.ai.api.Data.Content.ImageFile;
+import com.logaritex.ai.api.Data.Content.Text;
+import com.logaritex.ai.api.Data.Content.Type;
 import com.logaritex.ai.api.Data.ListRequest.Order;
 import com.logaritex.ai.api.Data.Run.RequiredAction;
 import com.logaritex.ai.api.Data.Run.RequiredAction.SubmitToolOutputs;
@@ -32,7 +34,6 @@ import com.logaritex.ai.api.Data.Run.Status;
 import com.logaritex.ai.api.Data.RunStep.Error;
 import com.logaritex.ai.api.Data.RunStep.RunStepStatus;
 import com.logaritex.ai.api.Data.RunStep.RunStepType;
-import com.logaritex.ai.api.Data.TextContent.Text;
 import com.logaritex.ai.api.Data.ToolOutputs.ToolOutput;
 
 /**
@@ -363,7 +364,7 @@ public class Data {
 	 * additional information about the object in a structured format. Keys can be a maximum of 64 characters long and
 	 * values can be a maximum of 512 characters long.
 	 */
-	public record ThreadRequest<T>(List<Message<T>> messages, Map<String, String> metadata) {
+	public record ThreadRequest(List<Message> messages, Map<String, String> metadata) {
 
 		public ThreadRequest() {
 			this(List.of(), Map.of());
@@ -392,8 +393,7 @@ public class Data {
 	 * @param created_at The Unix timestamp (in seconds) for when the message was created.
 	 * @param thread_id The {@link Thread} ID that this message belongs to.
 	 * @param role The entity that produced the message. One of 'user' or 'assistant'.
-	 * @param content The content of the message in array of text {@link TextContent} and/or images
-	 * {@link ImageContent}.
+	 * @param content The content of the message in array of text and/or images.
 	 * @param assistant_id If applicable, the ID of the {@link Assistant} that authored this message.
 	 * @param run_id If applicable, the ID of the run associated with the authoring of this message.
 	 * @param file_ids A list of {@link File} IDs that the assistant should use. Useful for tools like retrieval and
@@ -402,17 +402,33 @@ public class Data {
 	 * additional information about the object in a structured format. Keys can be a maximum of 64 characters long and
 	 * values can be a maximum of 512 characters long.
 	 */
-	public record Message<T>(String id, String object, Long created_at, String thread_id, Role role, List<T> content,
+	public record Message(String id, String object, Long created_at, String thread_id, Role role, List<Content> content,
 			String assistant_id, String run_id, List<String> file_ids, Map<String, String> metadata) {
 	}
 
 	/**
-	 * Text message content.
+	 * Message content. Can hold either text or image types. Mutually exclusive.
 	 *
-	 * @param type should be set to 'text'.
-	 * @param text text message content.
+	 * @param type should be set to 'text' or 'image'.
+	 * @param text text message content when the type is 'text' and null otherwise.
+	 * @param image_file image file id when the type is 'image' and null otherwise.
 	 */
-	public record TextContent(String type, Text text) {
+	public record Content(Type type, Text text, ImageFile image_file) {
+
+		/**
+		 * Message content type.
+		 */
+		public enum Type {
+			/**
+			 * Message content is of Text type.
+			 */
+			text,
+			/**
+			 * Message content is of type Image.
+			 */
+			image_file;
+		}
+
 		/**
 		 * Content's text.
 		 * @param value Content's string text value. Can contain placeholders to be replaced with annotation values.
@@ -420,15 +436,7 @@ public class Data {
 		 */
 		public record Text(String value, List<Map<String, Object>> annotations) {
 		}
-	}
 
-	/**
-	 * Message image content.
-	 *
-	 * @param type should be set to 'image'.
-	 * @param image_file image file id.
-	 */
-	public record ImageContent(String type, ImageFile image_file) {
 		/**
 		 * Image file reference.
 		 *
@@ -587,7 +595,7 @@ public class Data {
 	 * values can be a maximum of 512 characters long.
 	 */
 	@JsonInclude(Include.NON_NULL)
-	public record RunThreadRequest<T>(String assistant_id, ThreadRequest<T> thread, String model, String instructions,
+	public record RunThreadRequest(String assistant_id, ThreadRequest thread, String model, String instructions,
 			List<Data.Tool> tools, Map<String, String> metadata) {
 
 		public RunThreadRequest(String assistant_id) {

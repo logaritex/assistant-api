@@ -32,7 +32,6 @@ import com.logaritex.ai.api.Data.MessageRequest;
 import com.logaritex.ai.api.Data.Role;
 import com.logaritex.ai.api.Data.Run;
 import com.logaritex.ai.api.Data.RunRequest;
-import com.logaritex.ai.api.Data.TextContent;
 import com.logaritex.ai.api.Data.ThreadRequest;
 import com.logaritex.ai.api.Data.Tool;
 
@@ -59,7 +58,7 @@ public class AssistantOverview {
 				Map.of())); // metadata
 
 		// 3. Create an empty Thread.
-		Data.Thread thread = assistantApi.createThread(new ThreadRequest<>());
+		Data.Thread thread = assistantApi.createThread(new ThreadRequest());
 
 		// 4. Add a Message to a Thread
 		assistantApi.createMessage(
@@ -77,11 +76,11 @@ public class AssistantOverview {
 		}
 
 		// 7. Display the Assistant's Response
-		DataList<Message<TextContent>> messages = assistantApi.listMessages(
+		DataList<Message> messages = assistantApi.listMessages(
 				new ListRequest(), thread.id());
 
 		// 7.1 Filter out the assistant messages only.
-		List<Message<TextContent>> assistantMessages = messages.data().stream()
+		List<Message> assistantMessages = messages.data().stream()
 				.filter(msg -> msg.role() == Role.assistant).toList();
 
 		System.out.println(assistantMessages

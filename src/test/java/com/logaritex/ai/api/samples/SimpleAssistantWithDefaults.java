@@ -49,7 +49,7 @@ public class SimpleAssistantWithDefaults {
 				"You are a expert in geography, be helpful and concise."));
 
 		// Create an empty Thread to represents a session between your user and your application.
-		Data.Thread thread = assistantApi.createThread(new ThreadRequest<>(List.of(), Map.of()));
+		Data.Thread thread = assistantApi.createThread(new ThreadRequest(List.of(), Map.of()));
 
 		// Add user Message to the Thread.
 		assistantApi.createMessage(
@@ -65,13 +65,13 @@ public class SimpleAssistantWithDefaults {
 		}
 
 		// Get all messages associated with the thread.
-		Data.DataList<Data.Message<Data.TextContent>> messages = assistantApi.listMessages(new Data.ListRequest(),
+		Data.DataList<Data.Message> messages = assistantApi.listMessages(new Data.ListRequest(),
 				thread.id());
 
 		System.out.println("Size: " + messages.data().size());
 
 		// Filter out the 'assistant' messages only.
-		List<Data.Message<Data.TextContent>> assistantMessages = messages.data().stream()
+		List<Data.Message> assistantMessages = messages.data().stream()
 				.filter(msg -> msg.role() == Data.Role.assistant).toList();
 
 		System.out.println("Assistant messages: " + assistantMessages);

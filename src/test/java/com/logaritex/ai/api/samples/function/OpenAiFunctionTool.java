@@ -116,7 +116,7 @@ public class OpenAiFunctionTool {
 		logger.info("1. Create an Assistant with two function definitions. Assistant Id: " + assistant.id());
 
 		// 2. Create an empty Thread (represents a session between your user and your application).
-		Data.Thread thread = assistantApi.createThread(new Data.ThreadRequest<>());
+		Data.Thread thread = assistantApi.createThread(new Data.ThreadRequest());
 		logger.info(" 2. Create an empty Thread: " + thread.id());
 
 		// 3. Add a new user Message to the Thread.
@@ -194,7 +194,7 @@ public class OpenAiFunctionTool {
 
 		logger.info("5. Retrieve Thread's messages. Result contains all 'assistant' and 'user' messages.");
 		// 5. Retrieve Thread's messages. Result contains all 'assistant' and 'user' messages.
-		Data.DataList<Data.Message<String>> messages = assistantApi.listMessages(
+		Data.DataList<Data.Message> messages = assistantApi.listMessages(
 				new Data.ListRequest(),
 				thread.id());
 
@@ -203,7 +203,7 @@ public class OpenAiFunctionTool {
 
 		logger.info(" 6. extract only the assistant messages.");
 		// 6. extract only the assistant messages.
-		List<Message<String>> assistantMessages = messages.data().stream().filter(m -> m.role() == Data.Role.assistant)
+		List<Message> assistantMessages = messages.data().stream().filter(m -> m.role() == Data.Role.assistant)
 				.toList();
 
 		System.out.println(assistantMessages);

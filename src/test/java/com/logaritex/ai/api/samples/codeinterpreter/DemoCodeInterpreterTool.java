@@ -16,16 +16,21 @@
 
 package com.logaritex.ai.api.samples.codeinterpreter;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 import com.logaritex.ai.api.AssistantApi;
 import com.logaritex.ai.api.Data;
-import com.logaritex.ai.api.FileApi;
 import com.logaritex.ai.api.Data.Assistant;
 import com.logaritex.ai.api.Data.Message;
 import com.logaritex.ai.api.Data.Run;
 import com.logaritex.ai.api.Data.ThreadRequest;
+import com.logaritex.ai.api.FileApi;
+
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.util.StreamUtils;
 
 /**
  * WIP On of the most important parts of Assistant is the ability to leverage tools to perform Actions autonomously.
@@ -39,33 +44,38 @@ import com.logaritex.ai.api.Data.ThreadRequest;
  */
 public class DemoCodeInterpreterTool {
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, IOException {
 
+		var resourceLoader = new DefaultResourceLoader();
 		FileApi fileApi = new FileApi(System.getenv("OPENAI_API_KEY"));
 
-		AssistantApi assistantApi = new AssistantApi(System.getenv("OPENAI_API_KEY"));
+		Data.File file = fileApi.uploadFile(
+				resourceLoader.getResource("classpath:/MSFT.csv"),
+				Data.File.Purpose.ASSISTANTS);
 
+		AssistantApi assistantApi = new AssistantApi(System.getenv("OPENAI_API_KEY"));
 
 		Assistant assistant = assistantApi.createAssistant(new Data.AssistantRequestBody(
 				"gpt-4-1106-preview",
 				"Personal finance genius",
 				"",
-				"You help users with their personal finance questions.",
+				"You help users with finance and stock exchange questions.",
 				List.of(new Data.Tool(Data.Tool.Type.code_interpreter)),
-				List.of(), Map.of()));
+				List.of(file.id()),
+				Map.of()));
 
 		//
 		// Threads - represents a session between your user and your application.
 		//
 
 		// Create an empty thread.
-		Data.Thread thread = assistantApi.createThread(new ThreadRequest<>(List.of(), Map.of()));
+		Data.Thread thread = assistantApi.createThread(new ThreadRequest(List.of(), Map.of()));
 
 		// Add user message to the thread.
 		// Role is from the user because the user types this message and the content is their question.
-		Data.Message<String> message = assistantApi.createMessage(
+		assistantApi.createMessage(
 				new Data.MessageRequest(Data.Role.user,
-						"Generate a chart showing which day of the week I spend the most money?"),
+						"Use the attached file to generate a chart showing the MSFT stock value changing over time."),
 				thread.id());
 
 		//
@@ -82,16 +92,31 @@ public class DemoCodeInterpreterTool {
 		}
 
 		// Get all messages associated with the thread.
-		Data.DataList<Data.Message<String>> messages = assistantApi.listMessages(new Data.ListRequest(),
+		Data.DataList<Data.Message> messageList = assistantApi.listMessages(new Data.ListRequest(),
 				thread.id());
 
-		System.out.println("Size: " + messages.data().size());
-		System.out.println("Thread Messages: " + messages.data());
+		System.out.println("Size: " + messageList.data().size());
+		System.out.println("Thread Messages: " + messageList.data());
 
-		List<Message<String>> assistantMessages = messages.data().stream().filter(m -> m.role() == Data.Role.assistant)
+		List<Message> assistantMessages = messageList.data().stream().filter(m -> m.role() == Data.Role.assistant)
 				.toList();
 		// assistantMessages.forEach(m -> System.out.println(m.content()));
 		System.out.println(assistantMessages);
+
+		Data.Message lastAssistantMessage = assistantApi.retrieveMessage(thread.id(), messageList.first_id());
+
+		String chartImageId = lastAssistantMessage.content().stream()
+				.filter(c -> c.type() == Data.Content.Type.image_file).findFirst()
+				.get().image_file()
+				.file_id();
+
+		byte[] fileContent = fileApi.retrieveFileContent(chartImageId);
+
+		var fos = new FileOutputStream("image.png");
+
+		StreamUtils.copy(fileContent, fos);
+
+		fos.close();
 	}
 
 }
