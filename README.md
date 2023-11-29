@@ -3,7 +3,7 @@
 The `assistant-api` is a lightweight, Java client implementation of the `Assistants`  (Assistants, Threads, Messages, Runs, RunSteps) and the `Files` OpenAI APIs.
 
 Follow the [quick start](#2-quick-start) to learn how to apply the `assistant-api` for building a sample Assistant application
-([AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java)).
+([AssistantOverview.java](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java)).
 
 The [Sample Assistant Applications](#3-sample-assistant-applications) section below, provides more in-depth  examples, exploring the important Assistants features: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java), [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
 
@@ -95,11 +95,10 @@ Data.Thread thread = assistantApi.createThread(new ThreadRequest<>());
 Lets add a new user Message to our Thread:
 
 ```java
-assistantApi.createMessage(
-   new MessageRequest(
- Role.user, // user created message.
- "I need to solve the equation `3x + 11 = 14`. Can you help me?"), // user question.
-    thread.id()); // thread to add the message to.
+assistantApi.createMessage(new MessageRequest(
+   Role.user, // user created message.
+   "I need to solve the equation `3x + 11 = 14`. Can you help me?"), // user question.
+   thread.id()); // thread to add the message to.
 ```
 
 Threads don’t have a size limit. You can add as many Messages as you want to a Thread. The Assistant will ensure that requests to the model fit within the maximum context window, using relevant optimization techniques.
