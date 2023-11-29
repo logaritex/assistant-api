@@ -5,7 +5,7 @@ The `assistant-api` is a lightweight, Java client for the following Assistant an
 The Assistants API simplifies the development of AI assistants apps.
 It removes the need to manage conversation history and adds access to OpenAI-hosted tools like `Code Interpreter`, `Retrieval` (aka RAG) and 3rd party `Function-Calling`. The [Assistant API Concepts](#1-assistant-api-concepts) diagram illustrates the core classes and their relationships.
 
-The [Samples](#3-sample-assistant-applications) section, below, provides additional Assistant examples, such as: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [AssistantOverview.java](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java),[DemoCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/DemoCodeInterpreterTool.java) and [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
+The [Samples](#3-sample-assistant-applications) section, below, provides additional Assistant examples, such as: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [AssistantOverview.java](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java),[FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java) and [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
 
 > **Tip:**  Use the [Playground UI](https://platform.openai.com/playground) to explore and manage the assistants and files created by the `assistant-api`.
 
@@ -175,24 +175,26 @@ Following examples will walk you thought the Assistant API using the Java Client
 
 ### 3.1 Knowledge Retrieval Tool
 
-The [Retrieval Tool](https://youtu.be/pq34V_V5j18?t=2014) expends the knowledge of the Assistant.
+- The [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java) demo creates an Assistant instructed to be a SpringBoot expert, and provided latest SpringBoot reference documentation.
 
- The [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java) example creates an Assistant instructed as a SpringBoot expert that can answer related questions.
- The Retrieval Tool is enabled to augment the Assistant with knowledge from outside its model, such as proprietary product information or documents (e.g. the Spring Boot pdf docs).
- Once a doc files are uploaded and passed to the Assistant, OpenAI automatically chunks the documents, index and store the embeddings, and implement vector search to retrieve relevant content to answer user queries.
+[Retrieval](https://platform.openai.com/docs/assistants/tools/knowledge-retrieval) augments the Assistant with knowledge from outside its model, such as proprietary product information or documents provided by your users. Once a file is uploaded and passed to the Assistant, OpenAI will automatically chunk your documents, index and store the embeddings, and implement vector search to retrieve relevant content to answer user queries.
 
- Apparently the Retrieval Tool is OpenAI's built-in RAG. Currently it has very limited configuration capabilities:
-
+Apparently the Retrieval Tool is an opinionated, OpenAI hosted, [RAG](https://research.ibm.com/blog/retrieval-augmented-generation-RAG) implementation with limited configuration options:
  > Retrieval currently optimizes for quality by adding all relevant content to the context of model calls.
  > We plan to introduce other retrieval strategies to enable developers to choose a different tradeoff between retrieval quality and model usage cost.
 
 ### 3.2 Function Calling Tool
 
-The [Function Tool](https://platform.openai.com/docs/assistants/tools/function-calling), allows you to describe functions to the Assistants and have it intelligently return the functions that need to be called along with their arguments. The Assistants API will pause execution during a Run when it invokes functions, and you can supply the results of the function call back to continue the Run execution.
+- [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java)
 
-The [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java)
+The [Function Tool](https://platform.openai.com/docs/assistants/tools/function-calling) enables users to define functions, prompting intelligent retrieval of required function calls and their arguments, with the API pausing execution during a Run for function invocation, allowing users to provide function call results to resume the Run.
 
 ### 3.3 Code Interpreter Tool
+
+[Code Interpreter](https://platform.openai.com/docs/assistants/tools/code-interpreter) can write and run Python code in a sandboxed execution environment, can process diverse data formats, and generate data and images, to solve code and math problems.
+
+- [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java).
+- [AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java).
 
 ## 4. How to build
 

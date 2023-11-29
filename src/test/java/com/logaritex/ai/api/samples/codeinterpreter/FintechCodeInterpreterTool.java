@@ -42,7 +42,7 @@ import org.springframework.util.StreamUtils;
  *
  * @author Christian Tzolov
  */
-public class DemoCodeInterpreterTool {
+public class FintechCodeInterpreterTool {
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 
