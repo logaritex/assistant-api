@@ -415,6 +415,14 @@ public class Data {
 	 */
 	public record Content(Type type, Text text, ImageFile image_file) {
 
+		public Content(Text text) {
+			this(Content.Type.text, text, null);
+		}
+
+		public Content(ImageFile imageFile) {
+			this(Content.Type.image_file, null, imageFile);
+		}
+
 		/**
 		 * Message content type.
 		 */

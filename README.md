@@ -250,6 +250,52 @@ Later is indication that the Assistant is paused and waiting for you to call you
 
 Finally the assistant generates an answer of the user question using the function responses.
 
+```
+The current weather in Amsterdam, Netherlands is approximately 2.24°C.
+The known local names for Amsterdam are as follows:
+- אמסטרדם (Hebrew)
+- Amsterdam (Norwegian, French)
+...
+```
+
+A dump of the `tool_calls` RunStep would look something like this:
+
+```json
+{
+  "id" : "step_QkJEXXzOxV9kRSophSYsl8T3",
+  "object" : "thread.run.step",
+  "created_at" : 1701276516,
+  "assistant_id" : "asst_QP7qQv1M5WD5kWjvfC9eN51w",
+  "thread_id" : "thread_ewfh9ix3XIZhFE7UMmkvqWRS",
+  "run_id" : "run_0LH7NSCzcpzrlCpbQB4Ubl9K",
+  "type" : "tool_calls",
+  "status" : "completed",
+  "step_details" : {
+    "type" : "tool_calls",
+    "tool_calls" : [ {
+      "id" : "call_phxNeKJDxiLDkTeCWYSYKJRy",
+      "type" : "function",
+      "function" : {
+        "name" : "getCurrentWeather",
+        "arguments" : "{\"location\": \"Amsterdam, NL\", \"lat\": 52.3676, \"lon\": 4.9041, \"unit\": \"c\"}",
+        "output" : "2.24c"
+      }
+    }, {
+      "id" : "call_HtnP7kjp1m7P5jpFwpuSqr9q",
+      "type" : "function",
+      "function" : {
+        "name" : "getCityLocalNames",
+        "arguments" : "{\"city\": \"Amsterdam\", \"country\": \"NL\"}",
+        "output" : "אמסטרדם (he),Amsterdam (no),Amsterdam (fr),ಆಂಸ್ಟರ್ಡ್ಯಾಮ್ (kn),ஆம்ஸ்டர்டம் (ta),آمستردام (fa),आम्स्टर्डम (ne),I-Amsterdami (zu),Amsterdamo (eo)..."
+      }
+    } ]
+  },
+  "completed_at" : 1701276534,
+}
+```
+
+For further details, follow the inlined logging messages.
+
 ## 4. How to build
 
 ```bash

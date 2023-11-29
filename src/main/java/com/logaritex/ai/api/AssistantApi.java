@@ -17,15 +17,18 @@
 package com.logaritex.ai.api;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logaritex.ai.api.Data.DataList;
 import com.logaritex.ai.api.Data.ListRequest;
 import com.logaritex.ai.api.Data.ResponseError;
 import com.logaritex.ai.api.Data.RunRequest;
+import com.logaritex.ai.api.Data.RunStep;
 import com.logaritex.ai.api.Data.RunThreadRequest;
 import com.logaritex.ai.api.Data.ThreadRequest;
 
@@ -639,6 +642,31 @@ public class AssistantApi {
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
 				});
+	}
+
+	/**
+	 * Retrieves all {@link Data.RunStep}s for given {@link Data.Thread#id()} and {@link Data.Run#id()} and converts
+	 * them into JSON string.
+	 * @param thread Thread to create the JSON dump for.
+	 * @param run Run to create the JSON dump for.
+	 * @return Returns JSON dump for all run steps retrieved for this Thread and Run.
+	 */
+	public String dumpRunStepsToJson(Data.Thread thread, Data.Run run) {
+
+		List<RunStep> runSteps = this.listRunSteps(thread.id(), run.id(), new ListRequest()).data();
+
+		var mapper = new ObjectMapper();
+		try {
+			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(runSteps);
+		}
+		catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
+
+		// StringBuilder builder = new StringBuilder();
+		// for (RunStep rs : runSteps) {
+		// }
+		// return builder.toString();
 	}
 
 	// Common helpers

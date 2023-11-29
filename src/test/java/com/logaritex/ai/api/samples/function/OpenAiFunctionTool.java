@@ -196,6 +196,8 @@ public class OpenAiFunctionTool {
 
 		logger.info("6.1 assistant messages: " + assistantMessages);
 
+		logger.info("RunSteps: " + assistantApi.dumpRunStepsToJson(thread, run));
+
 		// Comment out the deletion if you want to reuse the Assistant in
 		// https://platform.openai.com/assistants
 		logger.info(" 7. Delete the demo resources.");

@@ -73,7 +73,7 @@ public class FintechCodeInterpreterTool {
 		logger.info("4. Add a new user Message to the Thread.");
 		assistantApi.createMessage(
 				new Data.MessageRequest(Data.Role.user,
-						"Use the attached file to generate a chart showing the MSFT stock value changing over time."),
+						"Use the attached CSV file to generate a chart showing the MSFT stock value changing over time."),
 				thread.id());
 
 		logger.info("5. Start a new Run - representing the execution of a Thread with an Assistant.");
@@ -116,6 +116,8 @@ public class FintechCodeInterpreterTool {
 		var fos = new FileOutputStream("msft-chart.png");
 		StreamUtils.copy(fileContent, fos);
 		fos.close();
+
+		logger.info("RunSteps: " + assistantApi.dumpRunStepsToJson(thread, run));
 
 		// Comment out the deletion if you want to reuse the Assistant and Files in
 		// https://platform.openai.com/assistants and https://platform.openai.com/files
