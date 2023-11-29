@@ -44,10 +44,10 @@ import org.springframework.web.client.RestClient;
  * The AssistantApi provides a light, Java client implementation of the following OpenAI APIs:
  *
  * <pre>
- *- Assistants: https://platform.openai.com/docs/api-reference/assistants
- *- Threads: https://platform.openai.com/docs/api-reference/threads
- *- Messages: https://platform.openai.com/docs/api-reference/messages
- *- Runs & RunSteps: https://platform.openai.com/docs/api-reference/runs
+ * - Assistants: https://platform.openai.com/docs/api-reference/assistants
+ * - Threads: https://platform.openai.com/docs/api-reference/threads
+ * - Messages: https://platform.openai.com/docs/api-reference/messages
+ * - Runs and RunSteps: https://platform.openai.com/docs/api-reference/runs
  * </pre>
  *
  * @author Christian Tzolov
@@ -84,8 +84,9 @@ public class AssistantApi {
 	/**
 	 * Create an new assistant api.
 	 *
-	 * @param baseUrl api base URL
+	 * @param baseUrl api base URL.
 	 * @param openAiToken OpenAI apiKey.
+	 * @param restClientBuilder RestClient builder.
 	 */
 	public AssistantApi(String baseUrl, String openAiToken, RestClient.Builder restClientBuilder) {
 		this.rest = restClientBuilder.build();

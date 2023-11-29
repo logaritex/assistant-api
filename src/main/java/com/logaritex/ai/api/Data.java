@@ -415,10 +415,18 @@ public class Data {
 	 */
 	public record Content(Type type, Text text, ImageFile image_file) {
 
+		/**
+		 * Crates a Content of type Text.
+		 * @param text Content's text value.
+		 */
 		public Content(Text text) {
 			this(Content.Type.text, text, null);
 		}
 
+		/**
+		 * Crates a Content of type Image File.
+		 * @param imageFile Content's image file value.
+		 */
 		public Content(ImageFile imageFile) {
 			this(Content.Type.image_file, null, imageFile);
 		}
