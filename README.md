@@ -2,7 +2,7 @@
 
 The `assistant-api` is a lightweight, Java client implementation of the `Assistants`  (Assistants, Threads, Messages, Runs, RunSteps) and the `Files` OpenAI APIs.
 
-Follow the [quick start](#2-quick-start) to learn how to apply the `assistant-api` for building a sample Assistant application
+Follow the [quick start](#2-quick-start) to learn how to use the `assistant-api` for building a sample Assistant application
 ([AssistantOverview.java](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java)).
 
 The [Sample Assistant Applications](#3-sample-assistant-applications) section below, provides more in-depth  examples, exploring the important Assistants features: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java), [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
@@ -28,7 +28,11 @@ Some of benefits offered by the Assistants API are:
 
 ## 2. Quick Start
 
-#### Dependencies
+### Prerequisites
+
+OpenAI Account: Create an account at [OpenAI Signup](https://platform.openai.com/signup) and generate the token at [API Keys](https://platform.openai.com/account/api-keys).
+
+### Dependencies
 
 Add the maven `assistant-api` dependency:
 
@@ -42,7 +46,7 @@ Add the maven `assistant-api` dependency:
 
 > **Note:** currently you need to [clone and build](#4-how-to-build) the repo.
 
-#### Create the Clients
+### Create the Clients
 
 Create new `AssistantApi` and `FileApi` client instances, using your OpenAI API-KEY.
 
@@ -54,7 +58,7 @@ AssistantApi assistantApi = new AssistantApi("<YOUR OPENAI API-KEY>");
 FileApi fileApi = new FileApi("<YOUR OPENAI API-KEY>");
 ```
 
-#### Create an Assistant
+### Create an Assistant
 
 The `Assistant` has instructions and can leverage models, tools, and knowledge to respond to user queries.
 
@@ -77,7 +81,7 @@ Data.Assistant assistant = assistantApi.createAssistant(new AssistantRequestBody
 - `Model`: the LLM model to use.
 - `Code Interpreter`: one of the supported tools, that allows the Assistants to write and run Python code in a sandboxed execution environment to solve code and math problems.
 
-#### Create a Thread
+### Create a Thread
 
 `Thread` is a, persistent, conversation session between an `Assistant` and a `User`. It stores `Messages` and automatically handle truncation to fit content into a model’s context.
 
@@ -88,7 +92,7 @@ Threads are created per user, after the user initiates the conversation.
 Data.Thread thread = assistantApi.createThread(new ThreadRequest<>());
 ```
 
-#### Add a Message to a Thread
+### Add a Message to a Thread
 
 `Message` is created by an `Assistant` or a `User` and stored on the `Thread`. It can include text, images, and other files.
 
@@ -103,7 +107,7 @@ assistantApi.createMessage(new MessageRequest(
 
 Threads don’t have a size limit. You can add as many Messages as you want to a Thread. The Assistant will ensure that requests to the model fit within the maximum context window, using relevant optimization techniques.
 
-#### Run the Assistant
+### Run the Assistant
 
 The `Run` represents the execution of a `Thread` with an `Assistant`.
 For the `Assistant` to respond to the user message, you need to create a `Run`. This makes the Assistant read the `Thread` and decide whether to call tools (if they are enabled) or simply use the model to best answer the query. As the run progresses, the assistant appends `Messages` to the thread with the `"assistant"` role. The Assistant automatically decides what previous Messages to include in the context window for the model.
@@ -116,7 +120,7 @@ Data.Run run = assistantApi.createRun(
    new RunRequest(assistant.id())); // with this assistant.
 ```
 
-#### Check the Run status
+### Check the Run status
 
 By default, a Run goes into the queued state. You can periodically retrieve the Run to check on its status to see if it has moved to completed:
 
@@ -128,7 +132,7 @@ while (assistantApi.retrieveRun(thread.id(), run.id()).status() != Run.Status.co
 
 > **Tip:** The [Assistant API Concepts](#1-assistant-api-concepts) diagram shows the supported Run states and state transitions.
 
-#### Display the Assistant's Response
+### Display the Assistant's Response
 
 Once the Run completes, you can list the Messages added to the Thread by the Assistant:
 
