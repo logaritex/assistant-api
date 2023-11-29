@@ -2,7 +2,7 @@
 
 The `assistant-api` is a lightweight, Java client implementation of the `Assistants`  (Assistants, Threads, Messages, Runs, RunSteps) and the `Files` OpenAI APIs.
 
-Follow the [quick start](#2-quick-start) to learn how to use the `assistant-api` for building a sample Assistant application
+Follow the [quick start](#2-quick-start) guide to learn how to use the `assistant-api` for building a sample Assistant application
 ([AssistantOverview.java](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java)).
 
 The [Sample Assistant Applications](#3-sample-assistant-applications) section below, provides more in-depth  examples, exploring the important Assistants features: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java), [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
@@ -175,30 +175,73 @@ Here is the complete [AssistantOverview.java](src/test/java/com/logaritex/ai/api
 
 ## 3. Sample Assistant Applications
 
-Following examples will walk you thought the Assistant API using the Java Client.
+Following examples demonstrate how to use the `assistant-api` library to leverage the various Assistants API features.
 
 ### 3.1 Knowledge Retrieval Tool
 
-- The [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java) demo creates an Assistant instructed to be a SpringBoot expert, and provided latest SpringBoot reference documentation.
+The [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java) demo creates an Assistant instructed to behave as a SpringBoot expert.
+The `Retrieval Tool` is enabled to augment the Assistant with knowledge from outside its model, such as the latest [spring-boot-reference.pdf](src/test/resources/spring-boot-reference.pdf) documentation.
+Once the doc files are uploaded and passed to the Assistant, OpenAI automatically chunks the documents, index and store the embeddings, and implement vector search to retrieve relevant content to answer user queries.
 
-[Retrieval](https://platform.openai.com/docs/assistants/tools/knowledge-retrieval) augments the Assistant with knowledge from outside its model, such as proprietary product information or documents provided by your users. Once a file is uploaded and passed to the Assistant, OpenAI will automatically chunk your documents, index and store the embeddings, and implement vector search to retrieve relevant content to answer user queries.
+The  KnowledgeRetrievalAssistant creates a Thread and an user message with a question about information available only in the attached reference document.
+Then it creates a Run to execute the Tread with the configured Assistant.
+After the execution completes the demo retrieves the Assistant generated message (e.g. the answer) and prints the text content.
+For further details, follow the inlined logging messages.
 
-Apparently the Retrieval Tool is an opinionated, OpenAI hosted, [RAG](https://research.ibm.com/blog/retrieval-augmented-generation-RAG) implementation with limited configuration options:
+ N.B. The [Retrieval Tool](https://platform.openai.com/docs/assistants/tools/knowledge-retrieval) is a proprietary, hosted, OpenAI [RAG](https://research.ibm.com/blog/retrieval-augmented-generation-RAG) implementation with somewhat limited configuration options at the moment:
  > Retrieval currently optimizes for quality by adding all relevant content to the context of model calls.
  > We plan to introduce other retrieval strategies to enable developers to choose a different tradeoff between retrieval quality and model usage cost.
 
+> The KnowledgeRetrievalAssistant was inspired by this [video](https://youtu.be/pq34V_V5j18?t=2014).
+
 ### 3.2 Function Calling Tool
 
-- [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java)
+[OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java)
 
 The [Function Tool](https://platform.openai.com/docs/assistants/tools/function-calling) enables users to define functions, prompting intelligent retrieval of required function calls and their arguments, with the API pausing execution during a Run for function invocation, allowing users to provide function call results to resume the Run.
 
 ### 3.3 Code Interpreter Tool
 
-[Code Interpreter](https://platform.openai.com/docs/assistants/tools/code-interpreter) can write and run Python code in a sandboxed execution environment, can process diverse data formats, and generate data and images, to solve code and math problems.
+The [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java) demo creates an Assistant instructed to behave as a financial expert and `help users with finance and stock exchange questions`.
+The [Code Interpreter](https://platform.openai.com/docs/assistants/tools/code-interpreter) is enabled to allow the Assistant write and run Python code in a sandboxed execution environment, process diverse data formats, and generate data and images, to solve code and math problems.
+Also a `MSFT.csv` file,  with Microsoft's stock closing values, is upload and assigned to the fintech assistant.
+Then the demo creates a Thread and user massage asking the assistant to `generate a chart showing the MSFT stock value changing over time`.
+Run is created and executed and after the execution complete, the final assistance messages is retrieved and expected to have content similar to this:
 
-- [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java).
-- [AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java).
+```json
+    {
+      "id": "msg_FbczWI9TjlRzlfo4hSFTzvFe",
+      "object": "thread.message",
+      "created_at": 1701189080,
+      "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "image_file",
+          "image_file": {
+            "file_id": "file-1ebZ3aCUuvaDTlIEeTjWpQeC"
+          }
+        },
+        {
+          "type": "text",
+          "text": {
+            "value": "Here is the chart showing the MSFT stock closing price changing over time, based on the data from the provided CSV file. You can see the trend of the stock price on this graph. If you need more details or further analysis, feel free to ask!",
+            "annotations": []
+          }
+        }
+      ],
+      "file_ids": [],
+      "assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+      "run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+      "metadata": {}
+    }
+```
+
+Finally the FintechCodeInterpreterTool retrieves the content of the generated `image_file` and stores it into `msft-chart.png` that looks like this:
+![Fintech diagram](./docs/msft-chart.png)
+For further details, follow the inlined logging messages.
+
+The [AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java) used in the quick start guide provides another, simpler, code-interpreter example.
 
 ## 4. How to build
 

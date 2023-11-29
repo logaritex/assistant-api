@@ -21,9 +21,9 @@ import java.util.Map;
 
 import com.logaritex.ai.api.AssistantApi;
 import com.logaritex.ai.api.Data;
-import com.logaritex.ai.api.FileApi;
 import com.logaritex.ai.api.Data.Message;
 import com.logaritex.ai.api.Data.Run;
+import com.logaritex.ai.api.FileApi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -51,20 +51,22 @@ public class KnowledgeRetrievalAssistant {
 
 	public static void main(String[] args) throws InterruptedException {
 
-		var resourceLoader = new DefaultResourceLoader();
+		// Use your OpenAI api key to create the FileApi and the AssistantApi clients.
+		logger.info("Create FileApi and AssistantApi with your OPENAI_API_KEY.");
 
 		FileApi fileApi = new FileApi(System.getenv("OPENAI_API_KEY"));
+		AssistantApi assistantApi = new AssistantApi(System.getenv("OPENAI_API_KEY"));
 
-		logger.info("1. Upload the Spring Boot (classpath:/spring-boot-reference.pdf) file.");
-		// 1. Upload the Spring Boot docs - pdf file.
+		logger.info("1. Upload the classpath:/spring-boot-reference.pdf file.");
+
+		var resourceLoader = new DefaultResourceLoader();
+
 		Data.File file = fileApi.uploadFile(
 				resourceLoader.getResource("classpath:/spring-boot-reference.pdf"),
 				Data.File.Purpose.ASSISTANTS);
 
-		AssistantApi assistantApi = new AssistantApi(System.getenv("OPENAI_API_KEY"));
-
 		logger.info("2. Create assistant with the pdf file assigned.");
-		// 2. Create assistant with the pdf file assigned.
+
 		Data.Assistant assistant = assistantApi.createAssistant(new Data.AssistantRequestBody(
 				"gpt-4-1106-preview",
 				"SpringBoot Wizard",
@@ -74,51 +76,52 @@ public class KnowledgeRetrievalAssistant {
 				List.of(file.id()), // Assign the PDF file to the assistant!!!
 				Map.of()));
 
-		logger.info(" 3. Create an empty Thread (represents a session between your user and your application).");
-		// 3. Create an empty Thread (represents a session between your user and your application).
+		logger.info("3. Create an empty Thread (represents a session between your user and your application).");
+
 		Data.Thread thread = assistantApi.createThread(new Data.ThreadRequest());
 
-		logger.info(" 4. Add a new user Message to the Thread.");
-		// 4. Add a new user Message to the Thread.
+		logger.info("4. Add a new user Message to the Thread.");
+
 		assistantApi.createMessage(
 				new Data.MessageRequest(Data.Role.user, "How to use Spring RestClient?"), // user question.
 				thread.id());
 
 		logger.info("5. Start a new Run - representing the execution of a Thread with an Assistant.");
-		// 5. Start a new Run - representing the execution of a Thread with an Assistant.
+
 		Data.Run run = assistantApi.createRun(
 				thread.id(), // run this thread,
 				new Data.RunRequest(assistant.id())); // with this assistant.
 
 		logger.info("5.1. Wait until the run completes.");
-		// 5.1. Wait until the run completes.
+
 		while (assistantApi.retrieveRun(thread.id(), run.id()).status() != Run.Status.completed) {
 			java.lang.Thread.sleep(500);
 		}
 
 		logger.info("6. Retrieve thread's messages. Result contains all 'assistant' and 'user' messages.");
-		// 6. Retrieve thread's messages. Result contains all 'assistant' and 'user' messages.
+
 		Data.DataList<Data.Message> messages = assistantApi.listMessages(
 				new Data.ListRequest(),
 				thread.id());
 
-		logger.info("Message count: " + messages.data().size());
+		logger.info("6.1 Message count: " + messages.data().size());
 		// System.out.println("Thread messages: " + messages.data());
 
 		logger.info("7. Extract only the assistant messages.");
-		// 7. Extract only the assistant messages.
+
 		List<Message> assistantMessages = messages.data().stream().filter(m -> m.role() == Data.Role.assistant)
 				.toList();
 
-		System.out.println(assistantMessages);
+		logger.info("7.1 assistant messages: " + assistantMessages);
 
-		logger.info(" 8. Delete the demo resources.");
-		// 8. Delete the demo resources.
 		// Comment out the deletion if you want to reuse the Assistant and Files in
 		// https://platform.openai.com/assistants and https://platform.openai.com/files
-		// fileApi.deleteFile(file.id());
-		// assistantApi.deleteThread(thread.id());
-		// assistantApi.deleteAssistant(assistant.id());
+
+		logger.info("8. Delete the demo resources.");
+
+		fileApi.deleteFile(file.id());
+		assistantApi.deleteThread(thread.id());
+		assistantApi.deleteAssistant(assistant.id());
 	}
 
 }

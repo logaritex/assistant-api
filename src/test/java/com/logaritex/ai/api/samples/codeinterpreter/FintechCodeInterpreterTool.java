@@ -112,7 +112,7 @@ public class FintechCodeInterpreterTool {
 
 		byte[] fileContent = fileApi.retrieveFileContent(chartImageId);
 
-		var fos = new FileOutputStream("image.png");
+		var fos = new FileOutputStream("msft-chart.png");
 
 		StreamUtils.copy(fileContent, fos);
 
