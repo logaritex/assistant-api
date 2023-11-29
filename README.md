@@ -4,7 +4,9 @@ The `assistant-api` is a lightweight, Java client implementation of the `Assista
 
 Follow the [quick start](#2-quick-start) guide to learn how to use the `assistant-api` for building a sample Assistant [application](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java).
 
-The [Sample Assistant Applications](#3-sample-assistant-applications) section, offers more in-depth  examples, exploring the important Assistants features: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java), [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
+The [Sample Assistant Applications](#3-sample-assistant-applications) section, offers more in-depth  examples, exploring the important Assistants features:
+[Knowledge Retrieval Tool](#31-knowledge-retrieval-tool), [Code Interpreter Tool](#32-code-interpreter-tool) and [Function Calling Tool](#33-function-calling-tool).
+
 
 > **Tip:**  With the [Playground UI](https://platform.openai.com/playground) you can explore and manage and reuse the Assistant objects & Files created in your `assistant-api` applications.
 
