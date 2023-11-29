@@ -479,7 +479,6 @@ public class Data {
 	}
 
 	/**
-	 *
 	 * Represents an execution run on a {@link Data.Thread}.
 	 *
 	 * @param id The identifier, which can be referenced in API endpoints.

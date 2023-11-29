@@ -47,7 +47,7 @@ import org.springframework.web.client.RestClient;
  *- Assistants: https://platform.openai.com/docs/api-reference/assistants
  *- Threads: https://platform.openai.com/docs/api-reference/threads
  *- Messages: https://platform.openai.com/docs/api-reference/messages
- *- Runs: https://platform.openai.com/docs/api-reference/runs
+ *- Runs & RunSteps: https://platform.openai.com/docs/api-reference/runs
  * </pre>
  *
  * @author Christian Tzolov
@@ -662,11 +662,6 @@ public class AssistantApi {
 		catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
-
-		// StringBuilder builder = new StringBuilder();
-		// for (RunStep rs : runSteps) {
-		// }
-		// return builder.toString();
 	}
 
 	// Common helpers

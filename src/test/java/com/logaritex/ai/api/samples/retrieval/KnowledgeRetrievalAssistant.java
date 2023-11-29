@@ -105,7 +105,6 @@ public class KnowledgeRetrievalAssistant {
 				thread.id());
 
 		logger.info("6.1 Message count: " + messages.data().size());
-		// System.out.println("Thread messages: " + messages.data());
 
 		logger.info("7. Extract only the assistant messages.");
 
@@ -113,6 +112,8 @@ public class KnowledgeRetrievalAssistant {
 				.toList();
 
 		logger.info("7.1 assistant messages: " + assistantMessages);
+
+		logger.info("RunSteps: " + assistantApi.dumpRunStepsToJson(thread, run));
 
 		// Comment out the deletion if you want to reuse the Assistant and Files in
 		// https://platform.openai.com/assistants and https://platform.openai.com/files

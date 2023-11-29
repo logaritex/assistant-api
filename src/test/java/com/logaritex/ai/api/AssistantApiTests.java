@@ -180,13 +180,111 @@ public class AssistantApiTests {
 		Data.DeletionStatus expectedStatus = new Data.DeletionStatus(TEST_API_KEY, TEST_API_KEY, null);
 
 		server.expect(requestToUriTemplate("/v1/assistants/{assistant_id}", assistantId))
-		.andExpect(method(HttpMethod.DELETE))
-		.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
-		.andRespond(withSuccess(objectMapper.writeValueAsBytes(expectedStatus), MediaType.APPLICATION_JSON));
+				.andExpect(method(HttpMethod.DELETE))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andRespond(withSuccess(objectMapper.writeValueAsBytes(expectedStatus), MediaType.APPLICATION_JSON));
 
 		Data.DeletionStatus status = client.deleteAssistant(assistantId);
 
 		assertThat(status).isEqualTo(expectedStatus);
+
+		server.verify();
+	}
+
+	@Test
+	public void createAssistantFile() throws JsonProcessingException {
+
+		String assistantId = "63";
+
+		var file = new Data.File("id1", 66, new Date().getTime(), "filename",
+				"object", "purpose", "status", "status_details");
+
+		server.expect(requestToUriTemplate("/v1/assistants/{assistant_id}/files", assistantId))
+				.andExpect(method(HttpMethod.POST))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andExpect(content().json(objectMapper.writeValueAsString(Map.of("file_id", file.id()))))
+				.andRespond(
+						withSuccess(objectMapper.writeValueAsString(file), MediaType.APPLICATION_JSON));
+
+		Data.File assistantFile = client.createAssistantFile(assistantId, file.id());
+
+		assertThat(assistantFile).isEqualTo(file);
+
+		server.verify();
+	}
+
+	@Test
+	public void retrieveAssistantFile() throws JsonProcessingException {
+
+		Data.Assistant assistant = new Data.Assistant("id1", "object", new Date().getTime(), "name",
+				"description", "model",
+				"instructions", List.of(), List.of(), Map.of());
+
+		var file = new Data.File("id1", 66, new Date().getTime(), "filename",
+				"object", "purpose", "status", "status_details");
+
+		server.expect(requestToUriTemplate("/v1/assistants/{assistant_id}/files/{file_id}", assistant.id(), file.id()))
+				.andExpect(method(HttpMethod.GET))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andRespond(
+						withSuccess(objectMapper.writeValueAsString(file), MediaType.APPLICATION_JSON));
+
+		Data.File retrievedFile = client.retrieveAssistantFile(assistant.id(), file.id());
+
+		assertThat(retrievedFile).isEqualTo(file);
+
+		server.verify();
+	}
+
+	@Test
+	public void deleteAssistantFile() throws JsonProcessingException {
+		String assistantId = "63";
+		String fileId = "99";
+
+		Data.DeletionStatus expectedStatus = new Data.DeletionStatus(TEST_API_KEY, TEST_API_KEY, true);
+
+		server.expect(requestToUriTemplate("/v1/assistants/{assistant_id}/files/{file_id}", assistantId, fileId))
+				.andExpect(method(HttpMethod.DELETE))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andRespond(withSuccess(objectMapper.writeValueAsBytes(expectedStatus), MediaType.APPLICATION_JSON));
+
+		Data.DeletionStatus status = client.deleteAssistantFile(assistantId, fileId);
+
+		assertThat(status).isEqualTo(expectedStatus);
+
+		server.verify();
+	}
+
+	@Test
+	public void listAssistantsFiles() throws JsonProcessingException {
+
+		String assistantId = "63";
+
+		var file1 = new Data.File("id1", 66, new Date().getTime(), "filename",
+				"object", "purpose", "status", "status_details");
+		var file2 = new Data.File("id2", 66, new Date().getTime(), "filename",
+				"object", "purpose", "status", "status_details");
+
+		DataList<Data.File> expectedList = new DataList<>("", List.of(file1, file2), file1.id(),
+				file2.id(), false);
+
+		server.expect(requestToUriTemplate("/v1/assistants/{assistant_id}/files", assistantId))
+				.andExpect(method(HttpMethod.GET))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andRespond(withSuccess(objectMapper.writeValueAsString(expectedList), MediaType.APPLICATION_JSON));
+
+		DataList<Data.File> assistantFileList = client.listAssistantFiles(assistantId);
+
+		assertThat(assistantFileList).isEqualTo(expectedList);
 
 		server.verify();
 	}
