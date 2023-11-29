@@ -2,10 +2,9 @@
 
 The `assistant-api` is a lightweight, Java client implementation of the `Assistants`  (Assistants, Threads, Messages, Runs, RunSteps) and the `Files` OpenAI APIs.
 
-Follow the [quick start](#2-quick-start) guide to learn how to use the `assistant-api` for building a sample Assistant application
-([AssistantOverview.java](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java)).
+Follow the [quick start](#2-quick-start) guide to learn how to use the `assistant-api` for building a sample Assistant [application](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java).
 
-The [Sample Assistant Applications](#3-sample-assistant-applications) section below, provides more in-depth  examples, exploring the important Assistants features: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java), [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
+The [Sample Assistant Applications](#3-sample-assistant-applications) section, offers more in-depth  examples, exploring the important Assistants features: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java), [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
 
 > **Tip:**  With the [Playground UI](https://platform.openai.com/playground) you can explore and manage and reuse the Assistant objects & Files created in your `assistant-api` applications.
 
@@ -13,7 +12,6 @@ The [Sample Assistant Applications](#3-sample-assistant-applications) section be
 
 The Assistants API simplifies the development of AI assistants apps.
 It removes the need to manage conversation history and adds access to OpenAI-hosted tools like `Code Interpreter`, `Retrieval` (aka RAG) and 3rd party `Function-Calling`.
-
 Following, annotated, diagram introduces the core API classes and their relationships:
 > **Tip:** the [AssistantApi-Concepts.pdf](./docs/AssistantApi-Concepts.pdf) version of the diagram offers (clickable) links to the OpenAI reference documentation.
 
@@ -188,11 +186,11 @@ Then it creates a Run to execute the Tread with the configured Assistant.
 After the execution completes the demo retrieves the Assistant generated message (e.g. the answer) and prints the text content.
 For further details, follow the inlined logging messages.
 
- N.B. The [Retrieval Tool](https://platform.openai.com/docs/assistants/tools/knowledge-retrieval) is a proprietary, hosted, OpenAI [RAG](https://research.ibm.com/blog/retrieval-augmented-generation-RAG) implementation with somewhat limited configuration options at the moment:
- > Retrieval currently optimizes for quality by adding all relevant content to the context of model calls.
- > We plan to introduce other retrieval strategies to enable developers to choose a different tradeoff between retrieval quality and model usage cost.
+N.B. The [Retrieval Tool](https://platform.openai.com/docs/assistants/tools/knowledge-retrieval) is a proprietary, hosted, OpenAI [RAG](https://research.ibm.com/blog/retrieval-augmented-generation-RAG) implementation with somewhat limited configuration options at the moment:
+> Retrieval currently optimizes for quality by adding all relevant content to the context of model calls.
+> We plan to introduce other retrieval strategies to enable developers to choose a different tradeoff between retrieval quality and model usage cost.
 
-> The KnowledgeRetrievalAssistant was inspired by this [video](https://youtu.be/pq34V_V5j18?t=2014).
+> (The KnowledgeRetrievalAssistant was inspired by this [video](https://youtu.be/pq34V_V5j18?t=2014)).
 
 ### 3.2 Function Calling Tool
 
@@ -206,7 +204,7 @@ The [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples
 The [Code Interpreter](https://platform.openai.com/docs/assistants/tools/code-interpreter) is enabled to allow the Assistant write and run Python code in a sandboxed execution environment, process diverse data formats, and generate data and images, to solve code and math problems.
 Also a `MSFT.csv` file,  with Microsoft's stock closing values, is upload and assigned to the fintech assistant.
 Then the demo creates a Thread and user massage asking the assistant to `generate a chart showing the MSFT stock value changing over time`.
-Run is created and executed and after the execution complete, the final assistance messages is retrieved and expected to have content similar to this:
+After the Run execution complete, the final assistance messages (e.g. `messageList.first_id()` ) is retrieved from the thread:
 
 ```json
     {
@@ -237,9 +235,11 @@ Run is created and executed and after the execution complete, the final assistan
     }
 ```
 
-Finally the FintechCodeInterpreterTool retrieves the content of the generated `image_file` and stores it into `msft-chart.png` that looks like this:
+Next the FintechCodeInterpreterTool retrieves the content of the Assistant generated `image_file` and stores it as a `msft-chart.png`:
 ![Fintech diagram](./docs/msft-chart.png)
 For further details, follow the inlined logging messages.
+
+> (The FintechCodeInterpreterTool was inspired by this [video](https://youtu.be/pq34V_V5j18?t=1734)).
 
 The [AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java) used in the quick start guide provides another, simpler, code-interpreter example.
 
