@@ -1,30 +1,32 @@
 # Java Client for OpenAI Assistant API
 
-The `assistant-api` is a lightweight, Java client for the following Assistant and File APIs ([Assistants](https://platform.openai.com/docs/api-reference/assistants), [Threads](https://platform.openai.com/docs/api-reference/threads), [Messages](https://platform.openai.com/docs/api-reference/messages), [Runs](https://platform.openai.com/docs/api-reference/runs) and [Files](https://platform.openai.com/docs/api-reference/files)). The [Quick Start](#2-quick-start) section shows how to create and configure the `assistant-api` for building a sample Assistant application.
+The `assistant-api` is a lightweight, Java client implementation of the `Assistants`  (Assistants, Threads, Messages, Runs, RunSteps) and the `Files` OpenAI APIs.
 
-The Assistants API simplifies the development of AI assistants apps.
-It removes the need to manage conversation history and adds access to OpenAI-hosted tools like `Code Interpreter`, `Retrieval` (aka RAG) and 3rd party `Function-Calling`. The [Assistant API Concepts](#1-assistant-api-concepts) diagram illustrates the core classes and their relationships.
+Follow the [quick start](#2-quick-start) to learn how to apply the `assistant-api` for building a sample Assistant application
+([AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java)).
 
-The [Samples](#3-sample-assistant-applications) section, below, provides additional Assistant examples, such as: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [AssistantOverview.java](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java),[FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java) and [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
+The [Sample Assistant Applications](#3-sample-assistant-applications) section below, provides more in-depth  examples, exploring the important Assistants features: [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java), [KnowledgeRetrievalAssistant.java](src/test/java/com/logaritex/ai/api/samples/retrieval/KnowledgeRetrievalAssistant.java), [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java), [SimpleAssistantWithDefaults.java](src/test/java/com/logaritex/ai/api/samples/SimpleAssistantWithDefaults.java).
 
-> **Tip:**  Use the [Playground UI](https://platform.openai.com/playground) to explore and manage the assistants and files created by the `assistant-api`.
+> **Tip:**  With the [Playground UI](https://platform.openai.com/playground) you can explore and manage and reuse the Assistant objects & Files created in your `assistant-api` applications.
 
 ## 1. Assistant API Concepts
 
-Following, annotated, diagram introduces the core API classes and their relation (as [pdf](./docs/AssistantApi-Concepts.pdf)):
+The Assistants API simplifies the development of AI assistants apps.
+It removes the need to manage conversation history and adds access to OpenAI-hosted tools like `Code Interpreter`, `Retrieval` (aka RAG) and 3rd party `Function-Calling`.
+
+Following, annotated, diagram introduces the core API classes and their relationships:
+> **Tip:** the [AssistantApi-Concepts.pdf](./docs/AssistantApi-Concepts.pdf) version of the diagram offers (clickable) links to the OpenAI reference documentation.
 
 ![Assistant API - Core concepts](./docs/AssistantApi-Concepts.jpg)
 
-Benefits of Assistant API:
+Some of benefits offered by the Assistants API are:
 
-- Don't have to store messages in my own DB.
-- OpenAi handles truncating messages to fit the context window for me.
-- The model output is generated even if I'm disconnected from the API (e.g. the Run async).
-- I can always get the messages later as they remain saved to the thread.
+- You don't have to store Messages in your own DB.
+- OpenAI handles truncating Messages to fit the context window for you (e.g. hosted RAG implementation).
+- The model output is generated even if you're disconnected from the API (e.g. the Run is asynchronous).
+- You always can retrieve the Messages later as they're persisted in the Thread.
 
 ## 2. Quick Start
-
-Based on OpenAI's [Assistant - Overview](https://platform.openai.com/docs/assistants/overview), [How Assistants work](https://platform.openai.com/docs/assistants/how-it-works), [Assistant Tools](https://platform.openai.com/docs/assistants/tools) and the [Assistant API](https://platform.openai.com/docs/api-reference/assistants) document references.
 
 #### Dependencies
 
@@ -38,7 +40,7 @@ Add the maven `assistant-api` dependency:
 </dependency>
 ```
 
-> **Note:** currently you need to clone and [build](#4-how-to-build) the repo.
+> **Note:** currently you need to [clone and build](#4-how-to-build) the repo.
 
 #### Create the Clients
 
@@ -56,8 +58,7 @@ FileApi fileApi = new FileApi("<YOUR OPENAI API-KEY>");
 
 The `Assistant` has instructions and can leverage models, tools, and knowledge to respond to user queries.
 
-In this example, we're creating an Assistant that is a personal math tutor, with the Code Interpreter tool enabled.
-Use the assistantApi client to create the Assistant:
+In this example, we're creating an Assistant that is a personal math tutor, with the Code Interpreter tool enabled:
 
 ```java
 
@@ -72,26 +73,24 @@ Data.Assistant assistant = assistantApi.createAssistant(new AssistantRequestBody
    Map.of())); // metadata
 ```
 
-- `Instructions`: configures how the Assistant and model should behave or respond (Similar to system messages in the Chat Completions API).
-- `Model`: you can specify the LLM model to use.
-- `Code Interpreter`: is one of the supported tools. It allows the Assistants to write and run Python code in a sandboxed execution environment to solve code and math problems.
+- `Instructions`: instructs how the Assistant and model should behave or respond (Similar to system messages in the Chat Completions API).
+- `Model`: the LLM model to use.
+- `Code Interpreter`: one of the supported tools, that allows the Assistants to write and run Python code in a sandboxed execution environment to solve code and math problems.
 
 #### Create a Thread
 
-`Thread` is a conversation session between an `Assistant` and a `User`. It stores `Messages` and automatically handle truncation to fit content into a model’s context.
+`Thread` is a, persistent, conversation session between an `Assistant` and a `User`. It stores `Messages` and automatically handle truncation to fit content into a model’s context.
 
-Threads are created per user as soon as the user initiates the conversation.
+Threads are created per user, after the user initiates the conversation.
 
 ```java
 // Create an empty Thread.
 Data.Thread thread = assistantApi.createThread(new ThreadRequest<>());
 ```
 
-> Threads don’t have a size limit. You can add as many Messages as you want to a Thread. The Assistant will ensure that requests to the model fit within the maximum context window, using relevant optimization techniques.
-
 #### Add a Message to a Thread
 
-Message is created by an Assistant or a User and stored on the Thread. It can include text, images, and other files.
+`Message` is created by an `Assistant` or a `User` and stored on the `Thread`. It can include text, images, and other files.
 
 Lets add a new user Message to our Thread:
 
@@ -103,10 +102,12 @@ assistantApi.createMessage(
     thread.id()); // thread to add the message to.
 ```
 
+Threads don’t have a size limit. You can add as many Messages as you want to a Thread. The Assistant will ensure that requests to the model fit within the maximum context window, using relevant optimization techniques.
+
 #### Run the Assistant
 
 The `Run` represents the execution of a `Thread` with an `Assistant`.
-For the `Assistant` to respond to the user message, you need to create a `Run`. This makes the Assistant read the `Thread` and decide whether to call tools (if they are enabled) or simply use the model to best answer the query. As the run progresses, the assistant appends `Messages` to the thread with the `assistant` role. The Assistant automatically decides what previous Messages to include in the context window for the model.
+For the `Assistant` to respond to the user message, you need to create a `Run`. This makes the Assistant read the `Thread` and decide whether to call tools (if they are enabled) or simply use the model to best answer the query. As the run progresses, the assistant appends `Messages` to the thread with the `"assistant"` role. The Assistant automatically decides what previous Messages to include in the context window for the model.
 
 Here is how to create a new Run for a Thread with an Assistant:
 
@@ -126,19 +127,19 @@ while (assistantApi.retrieveRun(thread.id(), run.id()).status() != Run.Status.co
 }
 ```
 
-> **Tip:** Check the [Assistant API Concepts](#1-assistant-api-concepts) diagram for the possible Run states.
+> **Tip:** The [Assistant API Concepts](#1-assistant-api-concepts) diagram shows the supported Run states and state transitions.
 
 #### Display the Assistant's Response
 
 Once the Run completes, you can list the Messages added to the Thread by the Assistant:
 
 ```java
-DataList<Message<TextContent>> messages = assistantApi.listMessages(
+DataList<Message> messages = assistantApi.listMessages(
  new ListRequest(), thread.id());
 
 // Filter out the assistant messages only.
-List<Message<TextContent>> assistantMessages =
- messages.data().stream().filter(msg -> msg.role() == Role.assistant).toList();
+List<Message> assistantMessages = messages.data().stream()
+   .filter(msg -> msg.role() == Role.assistant).toList();
 ```
 
 During this Run, the Assistant added new Message to the Thread.
@@ -167,7 +168,7 @@ Here is an example of what that message might look like:
 
 > You can also retrieve the Run Steps of this Run if you'd like to explore or display the inner workings of the Assistant and its tools.
 
-Here is the complete [AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java) code.
+Here is the complete [AssistantOverview.java](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java) code.
 
 ## 3. Sample Assistant Applications
 
