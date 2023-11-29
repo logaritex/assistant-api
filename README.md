@@ -192,13 +192,7 @@ N.B. The [Retrieval Tool](https://platform.openai.com/docs/assistants/tools/know
 
 > (The KnowledgeRetrievalAssistant was inspired by this [video](https://youtu.be/pq34V_V5j18?t=2014)).
 
-### 3.2 Function Calling Tool
-
-[OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java)
-
-The [Function Tool](https://platform.openai.com/docs/assistants/tools/function-calling) enables users to define functions, prompting intelligent retrieval of required function calls and their arguments, with the API pausing execution during a Run for function invocation, allowing users to provide function call results to resume the Run.
-
-### 3.3 Code Interpreter Tool
+### 3.2 Code Interpreter Tool
 
 The [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java) demo creates an Assistant instructed to behave as a financial expert and `help users with finance and stock exchange questions`.
 The [Code Interpreter](https://platform.openai.com/docs/assistants/tools/code-interpreter) is enabled to allow the Assistant write and run Python code in a sandboxed execution environment, process diverse data formats, and generate data and images, to solve code and math problems.
@@ -242,6 +236,19 @@ For further details, follow the inlined logging messages.
 > (The FintechCodeInterpreterTool was inspired by this [video](https://youtu.be/pq34V_V5j18?t=1734)).
 
 The [AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java) used in the quick start guide provides another, simpler, code-interpreter example.
+
+### 3.3 Function Calling Tool
+
+The [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java) demo creates an Assistant enabled with the [Function Tool](https://platform.openai.com/docs/assistants/tools/function-calling) to allow the users to define functions, prompting intelligent retrieval of required function calls and their arguments, with the API pausing execution during a Run for function invocation, allowing users to provide function call results to resume the Run.
+
+The OpenAiFunctionTool defines two functions: (1) `getCurrentWeather` with a prompt to `Get the weather in location` and (2) `getCityLocalNames` with a prompt `Get the local names of a city`.
+It also implements the [WeatherFunction.java](src/test/java/com/logaritex/ai/api/samples/function/WeatherFunction.java) and [CityNameFunction.java](src/test/java/com/logaritex/ai/api/samples/function/CityNameFunction.java) to handle the callbacks from the assistant using the defined parameter format.
+
+Next the OpenAiFunctionTool creates an empty Thread and an user message that should trigger the Model to invoke the registered functions.
+Start a Run with the thread and listen for run status: `Run.Status.requires_action`.
+Later is indication that the Assistant is paused and waiting for you to call your custom functions and send the result back.
+
+Finally the assistant generates an answer of the user question using the function responses.
 
 ## 4. How to build
 

@@ -53,13 +53,14 @@ public class OpenAiFunctionTool {
 
 	public static void main(String[] args) throws JsonMappingException, JsonProcessingException, InterruptedException {
 
+		logger.info("Create the WeatherFunction and CityNameFunction using your OPEN_WEATHER_MAP_API_KEY.");
 		var weatherService = new WeatherFunction(System.getenv("OPEN_WEATHER_MAP_API_KEY"));
-
 		var cityNameService = new CityNameFunction(System.getenv("OPEN_WEATHER_MAP_API_KEY"), 10);
 
+		logger.info("Create an AssistantApi using your OPENAI_API_KEY.");
 		var assistantApi = new AssistantApi(System.getenv("OPENAI_API_KEY"));
 
-		// 1. Create an Assistant with two function definitions.
+		logger.info("1. Create an Assistant with two function definitions");
 		Data.Assistant assistant = assistantApi.createAssistant(new Data.AssistantRequestBody(
 				"gpt-4-1106-preview",
 				"Weather and City names Assistant ", "",
@@ -113,30 +114,23 @@ public class OpenAiFunctionTool {
 										"""))),
 				List.of(), // no files
 				Map.of())); // no metadata
-		logger.info("1. Create an Assistant with two function definitions. Assistant Id: " + assistant.id());
 
-		// 2. Create an empty Thread (represents a session between your user and your application).
+		logger.info("2. Create an empty Thread (represents a session between your user and your application).");
 		Data.Thread thread = assistantApi.createThread(new Data.ThreadRequest());
-		logger.info(" 2. Create an empty Thread: " + thread.id());
 
-		// 3. Add a new user Message to the Thread.
-		var userMessage = assistantApi.createMessage(
-				new Data.MessageRequest(Data.Role.user,
-						"What is the weather in Amsterdam, Netherlands and the known local names for this place?"),
+		logger.info("3. Add a new user Message to the Thread.");
+		assistantApi.createMessage(new Data.MessageRequest(
+				Data.Role.user,
+				"What is the weather in Amsterdam, Netherlands and the known local names for this place?"),
 				thread.id());
-		logger.info("3. Add a new user Message to the Thread: " + userMessage);
 
-		// 4. Crate a new Run - represents an execution run on a Thread with an Assistant.
+		logger.info("4. Crate a new Run - represents an execution run on a Thread with an Assistant.");
 		Data.Run run = assistantApi.createRun(
 				thread.id(), // run this Thread,
 				new Data.RunRequest(assistant.id())); // with this Assistant.
-		logger.info(" 4. Crate a new Run - represents an execution run on a Thread with an Assistant. Run Id = "
-				+ run.id());
 
 		logger.info(
 				"4.1 As Run is asynchronous, wait until it completes and handle the internal transition states such as requires_action");
-		// 4.1 As Run is asynchronous, wait until it completes and handle
-		// the internal transition states such as requires_action
 		while (run.status() != Run.Status.completed || run.status() == Run.Status.cancelled) {
 
 			java.lang.Thread.sleep(1000);
@@ -155,13 +149,12 @@ public class OpenAiFunctionTool {
 
 						// Function arguments are expected the defined getCurrentWeather, JSON schema format like:
 						// {"location": "Amsterdam, Netherlands", "lat": 52.3676, "lon": 4.9041, "unit": "c"}
+						logger.info("4.2 getCurrentWeather function call received with arguments: "
+								+ toolCall.function().arguments());
 						WeatherFunction.Request weatherRequest = fromJson(toolCall.function().arguments(),
 								WeatherFunction.Request.class);
 
-						logger.info(
-								"4.2 As 4.2.1 Delegate to the weatherService to retrieve the current temperature. The weatherRequest ="
-										+ weatherRequest);
-						// 4.2.1 Delegate to the weatherService to retrieve the current temperature.
+						logger.info("4.2.1 Delegate to the weatherService to retrieve the current temperature.");
 						var weatherResponse = weatherService.apply(weatherRequest);
 
 						// 4.2.2 and the weatherService output to the tool outputs.
@@ -172,11 +165,12 @@ public class OpenAiFunctionTool {
 
 						// Function arguments are expected the defined getCityLocalNames, JSON schema format like:
 						// {"city": "Amsterdam", "country": "NL"}
+						logger.info("4.3 getCityLocalNames function call received with arguments: "
+								+ toolCall.function().arguments());
 						CityNameFunction.Request request = fromJson(toolCall.function().arguments(),
 								CityNameFunction.Request.class);
 
-						logger.info(" 4.3.1 Delegate to the cityNameService to retrieve the local city names. Request = " + request);
-						// 4.3.1 Delegate to the cityNameService to retrieve the local city names.
+						logger.info("4.3.1 Delegate to the cityNameService to retrieve the local city names.");
 						String cityNames = cityNameService.apply(request);
 
 						// 4.3.2 add the cityNameService output to the tool outputs.
@@ -184,8 +178,7 @@ public class OpenAiFunctionTool {
 					}
 				}
 
-				logger.info("4.4 send the tool outputs to the waiting Run process. Size: " + toolOutputs.size());
-				// 4.4 send the tool outputs to the waiting Run process.
+				logger.info("4.4 Send the tool outputs to the waiting Run process: " + toolOutputs);
 				if (!CollectionUtils.isEmpty(toolOutputs)) {
 					assistantApi.submitToolOutputsToRun(thread.id(), run.id(), new Data.ToolOutputs(toolOutputs));
 				}
@@ -193,27 +186,21 @@ public class OpenAiFunctionTool {
 		}
 
 		logger.info("5. Retrieve Thread's messages. Result contains all 'assistant' and 'user' messages.");
-		// 5. Retrieve Thread's messages. Result contains all 'assistant' and 'user' messages.
 		Data.DataList<Data.Message> messages = assistantApi.listMessages(
 				new Data.ListRequest(),
 				thread.id());
 
-		// System.out.println("Message count: " + messages.data().size());
-		// System.out.println("Thread messages: " + messages.data());
-
-		logger.info(" 6. extract only the assistant messages.");
-		// 6. extract only the assistant messages.
+		logger.info("6. extract only the assistant messages.");
 		List<Message> assistantMessages = messages.data().stream().filter(m -> m.role() == Data.Role.assistant)
 				.toList();
 
-		System.out.println(assistantMessages);
+		logger.info("6.1 assistant messages: " + assistantMessages);
 
-		logger.info(" 7. Delete the demo resources.");
-		// 7. Delete the demo resources.
 		// Comment out the deletion if you want to reuse the Assistant in
 		// https://platform.openai.com/assistants
-		// assistantApi.deleteThread(thread.id());
-		// assistantApi.deleteAssistant(assistant.id());
+		logger.info(" 7. Delete the demo resources.");
+		assistantApi.deleteThread(thread.id());
+		assistantApi.deleteAssistant(assistant.id());
 
 	}
 
