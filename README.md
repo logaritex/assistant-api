@@ -1,5 +1,7 @@
 # Java Client for OpenAI Assistant API
 
+[![latest Maven Central](https://maven-badges.herokuapp.com/maven-central/com.logaritex.ai/assistant-api/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.logaritex.ai/assistant-api) [![Publish to the Maven Central](https://github.com/logaritex/assistant-api/actions/workflows/maven-central-publish.yml/badge.svg)](https://github.com/logaritex/assistant-api/actions/workflows/maven-central-publish.yml)
+
 The `assistant-api` is a lightweight, Java client implementation of the `Assistants`  (Assistants, Threads, Messages, Runs, RunSteps) and the `Files` OpenAI APIs.
 
 The [quick start](#2-quick-start) guide shows how to apply the `assistant-api` for building a simple, Assistant [application](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java).
