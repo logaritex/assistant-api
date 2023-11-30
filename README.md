@@ -5,7 +5,7 @@ The `assistant-api` is a lightweight, Java client implementation of the `Assista
 Follow the [quick start](#2-quick-start) guide to learn how to use the `assistant-api` for building a sample Assistant [application](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java).
 
 The [Sample Assistant Applications](#3-sample-assistant-applications) section, offers more in-depth  examples, exploring the important Assistants features:
-[Knowledge Retrieval Tool](#31-knowledge-retrieval-tool), [Code Interpreter Tool](#32-code-interpreter-tool) and [Function Calling Tool](#33-function-calling-tool).
+[Knowledge Retrieval Tool](#31-knowledge-retrieval-tool), [Function Calling Tool](#32-function-calling-tool) and [Code Interpreter Tool](#33-code-interpreter-tool).
 
 
 > **Tip:**  With the [Playground UI](https://platform.openai.com/playground) you can explore and manage and reuse the Assistant objects & Files created in your `assistant-api` applications.
@@ -194,52 +194,7 @@ N.B. The [Retrieval Tool](https://platform.openai.com/docs/assistants/tools/know
 
 > (The KnowledgeRetrievalAssistant was inspired by this [video](https://youtu.be/pq34V_V5j18?t=2014)).
 
-### 3.2 Code Interpreter Tool
-
-The [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java) demo creates an Assistant instructed to behave as a financial expert and `help users with finance and stock exchange questions`.
-The [Code Interpreter](https://platform.openai.com/docs/assistants/tools/code-interpreter) is enabled to allow the Assistant write and run Python code in a sandboxed execution environment, process diverse data formats, and generate data and images, to solve code and math problems.
-Also a `MSFT.csv` file,  with Microsoft's stock closing values, is upload and assigned to the fintech assistant.
-Then the demo creates a Thread and user massage asking the assistant to `generate a chart showing the MSFT stock value changing over time`.
-After the Run execution complete, the final assistance messages (e.g. `messageList.first_id()` ) is retrieved from the thread:
-
-```json
-    {
-      "id": "msg_FbczWI9TjlRzlfo4hSFTzvFe",
-      "object": "thread.message",
-      "created_at": 1701189080,
-      "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
-      "role": "assistant",
-      "content": [
-        {
-          "type": "image_file",
-          "image_file": {
-            "file_id": "file-1ebZ3aCUuvaDTlIEeTjWpQeC"
-          }
-        },
-        {
-          "type": "text",
-          "text": {
-            "value": "Here is the chart showing the MSFT stock closing price changing over time, based on the data from the provided CSV file. You can see the trend of the stock price on this graph. If you need more details or further analysis, feel free to ask!",
-            "annotations": []
-          }
-        }
-      ],
-      "file_ids": [],
-      "assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
-      "run_id": "run_PKSStrIChDGM52NozOgpPTOd",
-      "metadata": {}
-    }
-```
-
-Next the FintechCodeInterpreterTool retrieves the content of the Assistant generated `image_file` and stores it as a `msft-chart.png`:
-![Fintech diagram](./docs/msft-chart.png)
-For further details, follow the inlined logging messages.
-
-> (The FintechCodeInterpreterTool was inspired by this [video](https://youtu.be/pq34V_V5j18?t=1734)).
-
-The [AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java) used in the quick start guide provides another, simpler, code-interpreter example.
-
-### 3.3 Function Calling Tool
+### 3.2 Function Calling Tool
 
 The [OpenAiFunctionTool.java](src/test/java/com/logaritex/ai/api/samples/function/OpenAiFunctionTool.java) demo creates an Assistant enabled with the [Function Tool](https://platform.openai.com/docs/assistants/tools/function-calling) to allow the users to define functions, prompting intelligent retrieval of required function calls and their arguments, with the API pausing execution during a Run for function invocation, allowing users to provide function call results to resume the Run.
 
@@ -253,39 +208,26 @@ In your code you dispatch the function arguments call the target functions and u
 Using the `assistant-api`, the function call handling would like this:
 
 ```java
-
 Function<String, String> myDummyFunction = arguments -> "dummy result for " + arguments;
 
 while (run.status() != Run.Status.completed || run.status() == Run.Status.cancelled) {
-
    run = assistantApi.retrieveRun(thread.id(), run.id());
-
    if (run.status() == Run.Status.requires_action) {
-
-      List<ToolCall> toolCalls = run.required_action().submit_tool_outputs().tool_calls();
-
       List<Data.ToolOutputs.ToolOutput> toolOutputs = new ArrayList<>();
-
+      List<ToolCall> toolCalls = run.required_action().submit_tool_outputs().tool_calls();
       for (ToolCall toolCall : toolCalls) {
-
          if (toolCall.function().name().equals("<YOUR-FUNCTION-NAME>")) {
-
             String functionCallArguments = toolCall.function().arguments();
-
             String functionOutput = myDummyFunction.apply(functionCallArguments)
-
             toolOutputs.add(new Data.ToolOutputs.ToolOutput(toolCall.id(), functionOutput));
          }
       }
-
       if (!CollectionUtils.isEmpty(toolOutputs)) {
          assistantApi.submitToolOutputsToRun(thread.id(), run.id(), new Data.ToolOutputs(toolOutputs));
       }
    }
-
    java.lang.Thread.sleep(1000);
 }
-
 ```
 
 After all function outputs are submitted, the execution resumes and the assistant uses the function responses to generate the answer:
@@ -335,6 +277,51 @@ A dump of the `tool_calls` RunStep would look something like this:
 ```
 
 For further details, follow the inlined logging messages.
+
+### 3.3 Code Interpreter Tool
+
+The [FintechCodeInterpreterTool.java](src/test/java/com/logaritex/ai/api/samples/codeinterpreter/FintechCodeInterpreterTool.java) demo creates an Assistant instructed to behave as a financial expert and `help users with finance and stock exchange questions`.
+The [Code Interpreter](https://platform.openai.com/docs/assistants/tools/code-interpreter) is enabled to allow the Assistant write and run Python code in a sandboxed execution environment, process diverse data formats, and generate data and images, to solve code and math problems.
+Also a `MSFT.csv` file,  with Microsoft's stock closing values, is upload and assigned to the fintech assistant.
+Then the demo creates a Thread and user massage asking the assistant to `generate a chart showing the MSFT stock value changing over time`.
+After the Run execution complete, the final assistance messages (e.g. `messageList.first_id()` ) is retrieved from the thread:
+
+```json
+    {
+      "id": "msg_FbczWI9TjlRzlfo4hSFTzvFe",
+      "object": "thread.message",
+      "created_at": 1701189080,
+      "thread_id": "thread_r2Juw5atbn8PxUY2BShsKdoo",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "image_file",
+          "image_file": {
+            "file_id": "file-1ebZ3aCUuvaDTlIEeTjWpQeC"
+          }
+        },
+        {
+          "type": "text",
+          "text": {
+            "value": "Here is the chart showing the MSFT stock closing price changing over time, based on the data from the provided CSV file. You can see the trend of the stock price on this graph. If you need more details or further analysis, feel free to ask!",
+            "annotations": []
+          }
+        }
+      ],
+      "file_ids": [],
+      "assistant_id": "asst_Sp2SDnJju4seJtuzMhYPmD6B",
+      "run_id": "run_PKSStrIChDGM52NozOgpPTOd",
+      "metadata": {}
+    }
+```
+
+Next the FintechCodeInterpreterTool retrieves the content of the Assistant generated `image_file` and stores it as a `msft-chart.png`:
+![Fintech diagram](./docs/msft-chart.png)
+For further details, follow the inlined logging messages.
+
+> (The FintechCodeInterpreterTool was inspired by this [video](https://youtu.be/pq34V_V5j18?t=1734)).
+
+The [AssistantOverview](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java) used in the quick start guide provides another, simpler, code-interpreter example.
 
 ## 4. How to build
 
