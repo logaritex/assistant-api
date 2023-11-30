@@ -4,7 +4,7 @@
 
 	<groupId>com.logaritex.ai</groupId>
 	<artifactId>assistant-api</artifactId>
-	<version>0.3.0</version>
+	<version>0.3.1-SNAPSHOT</version>
 
 	<name>assistant-api</name>
 	<description>OpenAI Assistent API Client</description>
@@ -36,7 +36,7 @@
 		<connection>scm:git:git@git@github.com:logaritex/assistant-api.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/logaritex/assistant-api.git</developerConnection>
 		<url>https://github.com/logaritex/assistant-api/tree/main</url>
-		<tag>0.3.0</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<properties>
