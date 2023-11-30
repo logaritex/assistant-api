@@ -2,13 +2,15 @@
 
 The `assistant-api` is a lightweight, Java client implementation of the `Assistants`  (Assistants, Threads, Messages, Runs, RunSteps) and the `Files` OpenAI APIs.
 
-Follow the [quick start](#2-quick-start) guide to learn how to use the `assistant-api` for building a sample Assistant [application](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java).
+The [quick start](#2-quick-start) guide shows how to apply the `assistant-api` for building a simple, Assistant [application](src/test/java/com/logaritex/ai/api/samples/AssistantOverview.java).
 
-The [Sample Assistant Applications](#3-sample-assistant-applications) section, offers more in-depth  examples, exploring the important Assistants features:
-[Knowledge Retrieval Tool](#31-knowledge-retrieval-tool), [Function Calling Tool](#32-function-calling-tool) and [Code Interpreter Tool](#33-code-interpreter-tool).
-
+The [Sample Assistant Applications](#3-sample-assistant-applications) section, offers more in-depth examples, exploring important Assistants features, such as:
+[Knowledge Retrieval](#31-knowledge-retrieval-tool), [Function Calling](#32-function-calling-tool) and [Code Interpreter](#33-code-interpreter-tool).
 
 > **Tip:**  With the [Playground UI](https://platform.openai.com/playground) you can explore and manage and reuse the Assistant objects & Files created in your `assistant-api` applications.
+
+> **Note:** This is still an experimental and rapidly evolving project.
+> Hopefully, in the future, it will compliment the [Spring-AI](https://docs.spring.io/spring-ai/reference/) capabilities. So for production applications consider th Spring-AI.
 
 ## 1. Assistant API Concepts
 
