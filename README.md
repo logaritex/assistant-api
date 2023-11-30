@@ -1,4 +1,4 @@
-# Java Client for OpenAI Assistant API
+# Java Client for OpenAI Assistants API
 
 [![latest Maven Central](https://maven-badges.herokuapp.com/maven-central/com.logaritex.ai/assistant-api/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.logaritex.ai/assistant-api) [![Publish to the Maven Central](https://github.com/logaritex/assistant-api/actions/workflows/maven-central-publish.yml/badge.svg)](https://github.com/logaritex/assistant-api/actions/workflows/maven-central-publish.yml)
 
