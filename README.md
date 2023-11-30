@@ -40,7 +40,7 @@ Add the maven `assistant-api` dependency:
 <dependency>
    <groupId>com.logaritex.ai</groupId>
    <artifactId>assistant-api</artifactId>
-   <version>0.1.0-SNAPSHOT</version>
+   <version>0.3.0-SNAPSHOT</version>
 </dependency>
 ```
 
