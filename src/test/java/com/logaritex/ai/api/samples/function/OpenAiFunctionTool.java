@@ -19,6 +19,7 @@ package com.logaritex.ai.api.samples.function;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -147,6 +148,7 @@ public class OpenAiFunctionTool {
 
 					if (toolCall.function().name().equals("getCurrentWeather")) {
 
+						Function<String, String> myFunction = arguments -> "dummy result for " + arguments;
 						// Function arguments are expected the defined getCurrentWeather, JSON schema format like:
 						// {"location": "Amsterdam, Netherlands", "lat": 52.3676, "lon": 4.9041, "unit": "c"}
 						logger.info("4.2 getCurrentWeather function call received with arguments: "

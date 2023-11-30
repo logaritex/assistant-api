@@ -247,10 +247,48 @@ The OpenAiFunctionTool defines two functions: (1) `getCurrentWeather` with a pro
 It also implements the [WeatherFunction.java](src/test/java/com/logaritex/ai/api/samples/function/WeatherFunction.java) and [CityNameFunction.java](src/test/java/com/logaritex/ai/api/samples/function/CityNameFunction.java) to handle the callbacks from the assistant using the defined parameter format.
 
 Next the OpenAiFunctionTool creates an empty Thread and an user message that should trigger the Model to invoke the registered functions.
-Start a Run with the thread and listen for run status: `Run.Status.requires_action`.
-Later is indication that the Assistant is paused and waiting for you to call your custom functions and send the result back.
+Run the thread and subscribe for the `Run.Status.requires_action` status.
+Later is indication that the run execution is paused and the `Run.required_action().submit_tool_outputs().tool_calls()` contains the function calling arguments as defined in the Assistant.
+In your code you dispatch the function arguments call the target functions and use the `assistantApi.submitToolOutputsToRun` to submit the results back to the thread run.
+Using the `assistant-api`, the function call handling would like this:
 
-Finally the assistant generates an answer of the user question using the function responses.
+```java
+
+Function<String, String> myDummyFunction = arguments -> "dummy result for " + arguments;
+
+while (run.status() != Run.Status.completed || run.status() == Run.Status.cancelled) {
+
+   run = assistantApi.retrieveRun(thread.id(), run.id());
+
+   if (run.status() == Run.Status.requires_action) {
+
+      List<ToolCall> toolCalls = run.required_action().submit_tool_outputs().tool_calls();
+
+      List<Data.ToolOutputs.ToolOutput> toolOutputs = new ArrayList<>();
+
+      for (ToolCall toolCall : toolCalls) {
+
+         if (toolCall.function().name().equals("<YOUR-FUNCTION-NAME>")) {
+
+            String functionCallArguments = toolCall.function().arguments();
+
+            String functionOutput = myDummyFunction.apply(functionCallArguments)
+
+            toolOutputs.add(new Data.ToolOutputs.ToolOutput(toolCall.id(), functionOutput));
+         }
+      }
+
+      if (!CollectionUtils.isEmpty(toolOutputs)) {
+         assistantApi.submitToolOutputsToRun(thread.id(), run.id(), new Data.ToolOutputs(toolOutputs));
+      }
+   }
+
+   java.lang.Thread.sleep(1000);
+}
+
+```
+
+After all function outputs are submitted, the execution resumes and the assistant uses the function responses to generate the answer:
 
 ```
 The current weather in Amsterdam, Netherlands is approximately 2.24°C.
