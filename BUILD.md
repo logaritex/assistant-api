@@ -1,5 +1,13 @@
 # Build tips
 
+- https://itnext.io/publishing-artifacts-to-maven-central-using-github-actions-a-step-by-step-guide-fd65ef075fd4
+- https://github.com/crazy-max/ghaction-import-gpg
+
+
+- https://gist.github.com/sualeh/ae78dc16123899d7942bc38baba5203c
+- https://docs.github.com/en/actions/publishing-packages/publishing-java-packages-with-maven
+
+
 ## GPG
 
 * Export your gpg private key from the system that you have created it.
