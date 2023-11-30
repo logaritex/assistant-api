@@ -42,11 +42,9 @@ Add the maven `assistant-api` dependency:
 <dependency>
    <groupId>com.logaritex.ai</groupId>
    <artifactId>assistant-api</artifactId>
-   <version>0.3.0-SNAPSHOT</version>
+   <version>0.3.0</version>
 </dependency>
 ```
-
-> **Note:** currently you need to [clone and build](#4-how-to-build) the repo.
 
 ### Create the Clients
 
