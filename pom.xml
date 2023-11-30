@@ -45,6 +45,7 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<spring-framework.version>6.1.1</spring-framework.version>
 		<jackson.version>2.16.0</jackson.version>
+		<gpg.keyname>FC59878E307D091EA5322C495D44894861F0154F</gpg.keyname>
 	</properties>
 
 	<distributionManagement>
@@ -146,7 +147,7 @@
 			<id>release</id>
 			<build>
 				<plugins>
-					<!-- <plugin>
+					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
 						<executions>
@@ -158,13 +159,15 @@
 								</goals>
 								<configuration>
 									<gpgArguments>
-										<arg> - - pinentry-mode</arg> FIX - -
+										<arg>--pinentry-mode</arg>
 										<arg>loopback</arg>
 									</gpgArguments>
+									<keyname>${gpg.keyname}</keyname>
+              						<passphraseServerId>${gpg.keyname}</passphraseServerId>
 								</configuration>
 							</execution>
 						</executions>
-					</plugin> -->
+					</plugin>
 
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
