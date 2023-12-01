@@ -1,14 +1,32 @@
-# Build tips
+# GH Actions for Publishing to Maven Central
 
-- https://itnext.io/publishing-artifacts-to-maven-central-using-github-actions-a-step-by-step-guide-fd65ef075fd4
-- https://github.com/crazy-max/ghaction-import-gpg
+- [Publishing Artifacts to Maven Central using GitHub Actions: A Step-by-Step Guide](https://itnext.io/publishing-artifacts-to-maven-central-using-github-actions-a-step-by-step-guide-fd65ef075fd4)
+  - [ghaction-import-gpg](https://github.com/crazy-max/ghaction-import-gpg)
+
+- [How to Sign and Release to The Central Repository with GitHub Actions](https://gist.github.com/sualeh/ae78dc16123899d7942bc38baba5203c)
+- [Publishing Java packages with Maven](https://docs.github.com/en/actions/publishing-packages/publishing-java-packages-with-maven) - lacking explanation how to add GPG signing.
 
 
-- https://gist.github.com/sualeh/ae78dc16123899d7942bc38baba5203c
-- https://docs.github.com/en/actions/publishing-packages/publishing-java-packages-with-maven
+## How to create a new GPG public/private pair.
 
+- List all keys:
 
-## GPG
+  ```bash
+  gpg --list-secret-keys --keyid-format=long
+  ```
+
+- Save the public and private keys (for keyID: `XXX-KEY-ID-XXX`) into `logaritex.public.pgp` and `logaritex.private.pgp` files:
+
+  ```bash
+  gpg --output logaritex.public.pgp --armor --export XXX-KEY-ID-XXX
+  gpg --output logaritex.private.pgp --armor --export-secret-key XXX-KEY-ID-XXX
+  ```
+
+- Send key to PGP server:
+
+  ```bash
+  gpg --keyserver hkp://keys.openpgp.org --send-keys XXX-KEY-ID-XXX
+  ```
 
 * Export your gpg private key from the system that you have created it.
   * Find your key-id (using `gpg --list-secret-keys --keyid-format=long`)
@@ -23,8 +41,8 @@
     ```
 
 * Set up [GitHub Actions secrets](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
-  * Create a secret called `OSSRH_GPG_SECRET_KEY` using the text from your edited secret.txt file (the whole text should be in a single line)
-  * Create a secret called `OSSRH_GPG_SECRET_KEY_PASSWORD` containing the password for your gpg secret key
+  * Create a secret called `MAVEN_GPG_PRIVATE_KEY` using the text from your edited secret.txt file (the whole text should be in a single line)
+  * Create a secret called `MAVEN_GPG_PASSPHRASE` containing the passphrase for your gpg secret key.
 
 ## References:
 
@@ -35,5 +53,5 @@
 
 
 * Nexus
-  * https://s01.oss.sonatype.org/content/repositories/snapshots/com/logaritex/data/data-generator/
+  * https://s01.oss.sonatype.org/content/repositories/snapshots/com/logaritex/ai/assistant-api/
   * https://s01.oss.sonatype.org/#nexus-search;quick~logaritex
