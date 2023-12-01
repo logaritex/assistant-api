@@ -22,8 +22,10 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.logaritex.ai.api.Data.Content.Text;
 import com.logaritex.ai.api.Data.DataList;
 import com.logaritex.ai.api.Data.ListRequest;
+import com.logaritex.ai.api.Data.Role;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -68,6 +70,8 @@ public class AssistantApiTests {
 	void resetMockServer() {
 		server.reset();
 	}
+
+	// Assistant API
 
 	@Test
 	public void createAssistant() throws JsonProcessingException {
@@ -191,6 +195,8 @@ public class AssistantApiTests {
 		server.verify();
 	}
 
+	// Assistant Files API
+
 	@Test
 	public void createAssistantFile() throws JsonProcessingException {
 
@@ -288,6 +294,8 @@ public class AssistantApiTests {
 
 		server.verify();
 	}
+
+	// Threads API
 
 	@Test
 	public void createThread() throws JsonProcessingException {
@@ -399,6 +407,124 @@ public class AssistantApiTests {
 		Data.DeletionStatus status = client.deleteThread(threadId);
 
 		assertThat(status).isEqualTo(expectedStatus);
+
+		server.verify();
+	}
+
+	// Messages API
+
+	@Test
+	public void createMessage() throws JsonProcessingException {
+
+		String threadId = "63";
+
+		var newMessageRequest = new Data.MessageRequest(Role.user, "content");
+
+		var message = new Data.Message("id", "object", new Date().getTime(), threadId, Role.user,
+				List.of(new Data.Content(new Text("some text", List.of()))), "assistantId", "runId", List.of(),
+				Map.of());
+
+		server.expect(requestToUriTemplate("/v1/threads/{thread_id}/messages", threadId))
+				.andExpect(method(HttpMethod.POST))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andExpect(content().json(objectMapper.writeValueAsString(newMessageRequest)))
+				.andRespond(
+						withSuccess(objectMapper.writeValueAsString(message), MediaType.APPLICATION_JSON));
+
+		Data.Message newMessage = client.createMessage(newMessageRequest, threadId);
+
+		assertThat(newMessage).isEqualTo(message);
+
+		server.verify();
+	}
+
+	@Test
+	public void retrieveMessage() throws JsonProcessingException {
+
+		String threadId = "63";
+
+		var message = new Data.Message("id1", "object", new Date().getTime(), threadId, Role.user,
+				List.of(new Data.Content(new Text("some text", List.of()))), "assistantId", "runId", List.of(),
+				Map.of());
+
+		server.expect(requestToUriTemplate("/v1/threads/{thread_id}/messages/{message_id}", threadId, message.id()))
+				.andExpect(method(HttpMethod.GET))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andRespond(
+						withSuccess(objectMapper.writeValueAsString(message), MediaType.APPLICATION_JSON));
+
+		Data.Message retrievedMessage = client.retrieveMessage(threadId, message.id());
+
+		assertThat(retrievedMessage).isEqualTo(message);
+
+		server.verify();
+	}
+
+	@Test
+	public void modifyMessage() throws JsonProcessingException {
+
+		String threadId = "63";
+
+		var message = new Data.Message("id1", "object", new Date().getTime(), threadId, Role.user,
+				List.of(new Data.Content(new Text("some text", List.of()))), "assistantId", "runId", List.of(),
+				Map.of());
+
+		var messageRequest = new Data.MessageRequest(Role.user, "content");
+
+		server.expect(requestToUriTemplate("/v1/threads/{thread_id}/messages/{message_id}", threadId, message.id()))
+				.andExpect(method(HttpMethod.POST))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andExpect(content().json(objectMapper.writeValueAsString(messageRequest)))
+				.andRespond(
+						withSuccess(objectMapper.writeValueAsString(message), MediaType.APPLICATION_JSON));
+
+		Data.Message modifiedMessage = client.modifyMessage(messageRequest, threadId, message.id());
+
+		assertThat(modifiedMessage).isEqualTo(message);
+
+		server.verify();
+	}
+
+	@Test
+	public void listMessages() throws JsonProcessingException {
+
+		String threadId = "63";
+
+		var message1 = new Data.Message("id1", "object", new Date().getTime(), threadId, Role.user,
+				List.of(new Data.Content(new Text("some text", List.of()))), "assistantId", "runId", List.of(),
+				Map.of());
+
+		var message2 = new Data.Message("id2", "object", new Date().getTime(), threadId, Role.user,
+				List.of(new Data.Content(new Text("some text", List.of()))), "assistantId", "runId", List.of(),
+				Map.of());
+
+		DataList<Data.Message> expectedList = new DataList<>("", List.of(message1, message2), message1.id(),
+				message2.id(), false);
+
+		ListRequest request = new ListRequest();
+
+		server.expect(requestToUriTemplate(
+				"/v1/threads/{thread_id}/messages?order={order}&limit={limit}&before={before}&after={after}",
+				threadId, request.order(), request.limit(), request.before(), request.after()))
+				.andExpect(method(HttpMethod.GET))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andRespond(withSuccess(objectMapper.writeValueAsString(expectedList), MediaType.APPLICATION_JSON));
+
+		DataList<Data.Message> messageDataList = client.listMessages(request, threadId);
+
+		assertThat(messageDataList).isEqualTo(expectedList);
 
 		server.verify();
 	}
