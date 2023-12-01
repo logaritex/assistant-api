@@ -30,6 +30,6 @@ jobs:
           mvn \
             --no-transfer-progress \
             --batch-mode \
-            -Dgpg.passphrase=${{ secrets.MAVEN_GPG_PASSPHRASE }} \
+            -Dgpg.passphrase='${{ secrets.MAVEN_GPG_PASSPHRASE }}' \
             clean deploy \
             -Prelease
