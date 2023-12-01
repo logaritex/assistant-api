@@ -150,6 +150,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
+						<version>3.1.0</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
@@ -163,7 +164,6 @@
 										<arg>loopback</arg>
 									</gpgArguments>
 									<keyname>${gpg.keyname}</keyname>
-              						<passphraseServerId>${gpg.keyname}</passphraseServerId>
 								</configuration>
 							</execution>
 						</executions>
@@ -185,6 +185,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
+						<version>3.3.0</version>
 						<executions>
 							<execution>
 								<id>attach-source</id>
