@@ -177,7 +177,7 @@ public class AssistantApiTests {
 	public void deleteAssistant() throws JsonProcessingException {
 		String assistantId = "63";
 
-		Data.DeletionStatus expectedStatus = new Data.DeletionStatus(TEST_API_KEY, TEST_API_KEY, null);
+		Data.DeletionStatus expectedStatus = new Data.DeletionStatus("id", "object", null);
 
 		server.expect(requestToUriTemplate("/v1/assistants/{assistant_id}", assistantId))
 				.andExpect(method(HttpMethod.DELETE))
@@ -247,7 +247,7 @@ public class AssistantApiTests {
 		String assistantId = "63";
 		String fileId = "99";
 
-		Data.DeletionStatus expectedStatus = new Data.DeletionStatus(TEST_API_KEY, TEST_API_KEY, true);
+		Data.DeletionStatus expectedStatus = new Data.DeletionStatus("id", "object", true);
 
 		server.expect(requestToUriTemplate("/v1/assistants/{assistant_id}/files/{file_id}", assistantId, fileId))
 				.andExpect(method(HttpMethod.DELETE))
@@ -285,6 +285,120 @@ public class AssistantApiTests {
 		DataList<Data.File> assistantFileList = client.listAssistantFiles(assistantId);
 
 		assertThat(assistantFileList).isEqualTo(expectedList);
+
+		server.verify();
+	}
+
+	@Test
+	public void createThread() throws JsonProcessingException {
+
+		var emptyThreadRequest = new Data.ThreadRequest();
+
+		var thread = new Data.Thread("id1", "object", new Date().getTime(), Map.of());
+
+		server.expect(requestTo("/v1/threads"))
+				.andExpect(method(HttpMethod.POST))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andExpect(content().json(objectMapper.writeValueAsString(emptyThreadRequest)))
+				.andRespond(
+						withSuccess(objectMapper.writeValueAsString(thread), MediaType.APPLICATION_JSON));
+
+		Data.Thread newThread = client.createThread(emptyThreadRequest);
+
+		assertThat(newThread).isEqualTo(thread);
+
+		server.verify();
+	}
+
+	@Test
+	public void retrieveThread() throws JsonProcessingException {
+
+		var thread = new Data.Thread("id1", "object", new Date().getTime(), Map.of());
+
+		server.expect(requestToUriTemplate("/v1/threads/{thread_id}", thread.id()))
+				.andExpect(method(HttpMethod.GET))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andRespond(
+						withSuccess(objectMapper.writeValueAsString(thread), MediaType.APPLICATION_JSON));
+
+		Data.Thread retrievedThread = client.retrieveThread(thread.id());
+
+		assertThat(retrievedThread).isEqualTo(thread);
+
+		server.verify();
+	}
+
+	@Test
+	public void modifyThread() throws JsonProcessingException {
+
+		var thread = new Data.Thread("id1", "object", new Date().getTime(), Map.of());
+
+		Data.ThreadRequest requestBody = new Data.ThreadRequest(List.of(), Map.of());
+
+		server.expect(requestToUriTemplate("/v1/threads/{thread_id}", thread.id()))
+				.andExpect(method(HttpMethod.POST))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andExpect(content().json(objectMapper.writeValueAsString(requestBody)))
+				.andRespond(
+						withSuccess(objectMapper.writeValueAsString(thread), MediaType.APPLICATION_JSON));
+
+		Data.Thread modifiedThread = client.modifyThread(requestBody, thread.id());
+
+		assertThat(modifiedThread).isEqualTo(thread);
+
+		server.verify();
+	}
+
+	@Test
+	public void listThreads() throws JsonProcessingException {
+
+		var thread1 = new Data.Thread("id1", "object", new Date().getTime(), Map.of());
+		var thread2 = new Data.Thread("id2", "object", new Date().getTime(), Map.of());
+
+		DataList<Data.Thread> expectedList = new DataList<>("", List.of(thread1, thread2), thread1.id(),
+				thread2.id(), false);
+
+		ListRequest request = new ListRequest();
+
+		server.expect(requestToUriTemplate("/v1/threads?order={order}&limit={limit}&before={before}&after={after}",
+				request.order(), request.limit(), request.before(), request.after()))
+				.andExpect(method(HttpMethod.GET))
+				.andExpect(header(AssistantApi.OPEN_AI_BETA, AssistantApi.ASSISTANTS_V1))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andExpect(header(HttpHeaders.CONTENT_TYPE,
+						CoreMatchers.containsString(MediaType.APPLICATION_JSON_VALUE)))
+				.andRespond(withSuccess(objectMapper.writeValueAsString(expectedList), MediaType.APPLICATION_JSON));
+
+		DataList<Data.Thread> threadDataList = client.listThreads(request);
+
+		assertThat(threadDataList).isEqualTo(expectedList);
+
+		server.verify();
+	}
+
+	@Test
+	public void deleteThread() throws JsonProcessingException {
+		String threadId = "63";
+
+		Data.DeletionStatus expectedStatus = new Data.DeletionStatus("statusId", "object", true);
+
+		server.expect(requestToUriTemplate("/v1/threads/{thread_id}", threadId))
+				.andExpect(method(HttpMethod.DELETE))
+				.andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer " + TEST_API_KEY))
+				.andRespond(withSuccess(objectMapper.writeValueAsBytes(expectedStatus), MediaType.APPLICATION_JSON));
+
+		Data.DeletionStatus status = client.deleteThread(threadId);
+
+		assertThat(status).isEqualTo(expectedStatus);
 
 		server.verify();
 	}

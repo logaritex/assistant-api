@@ -45,7 +45,6 @@
 		<spring-framework.version>6.1.1</spring-framework.version>
 		<jackson.version>2.16.0</jackson.version>
 		<gpg.keyname>5D44894861F0154F</gpg.keyname>
-		<!-- <gpg.keyname>FC59878E307D091EA5322C495D44894861F0154F</gpg.keyname> -->
 	</properties>
 
 	<distributionManagement>
