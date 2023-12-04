@@ -16,26 +16,20 @@
 
 package com.logaritex.ai.api;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logaritex.ai.api.Data.DataList;
 import com.logaritex.ai.api.Data.ListRequest;
-import com.logaritex.ai.api.Data.ResponseError;
 import com.logaritex.ai.api.Data.RunRequest;
 import com.logaritex.ai.api.Data.RunStep;
 import com.logaritex.ai.api.Data.RunThreadRequest;
 import com.logaritex.ai.api.Data.ThreadRequest;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
@@ -67,13 +61,7 @@ public class AssistantApi {
 	private static final String DEFAULT_BASE_URL = "https://api.openai.com";
 
 	private final RestClient rest;
-	private final Consumer<HttpHeaders> headers;
-	private final String openAiToken;
-
-	private final Function<String, String> url;
-
 	private final ResponseErrorHandler responseErrorHandler;
-
 
 	/**
 	 * Create an new assistant api.
@@ -92,19 +80,20 @@ public class AssistantApi {
 	 * @param restClientBuilder RestClient builder.
 	 */
 	public AssistantApi(String baseUrl, String openAiToken, RestClient.Builder restClientBuilder) {
-		this.rest = restClientBuilder.build();
-		this.openAiToken = openAiToken;
-		this.headers = headers -> {
-			headers.set(OPEN_AI_BETA, ASSISTANTS_V1);
-			headers.setBearerAuth(this.openAiToken);
-			headers.setContentType(MediaType.APPLICATION_JSON);
-		};
-		this.url = suffix -> baseUrl + suffix;
-		this.responseErrorHandler = new OpenAiResponseErrorHandler();
-	}
+		Assert.notNull(baseUrl, "Base URL can not be null.");
+		Assert.hasText(openAiToken, "OpenAI Token can not be empty.");
+		Assert.notNull(restClientBuilder, "RestClient builder can not be null.");
 
-	private String base(String resource) {
-		return this.url.apply(resource);
+		this.responseErrorHandler = new OpenAiResponseErrorHandler();
+
+		this.rest = restClientBuilder
+				.baseUrl(baseUrl)
+				.defaultHeaders(headers -> {
+					headers.set(OPEN_AI_BETA, ASSISTANTS_V1);
+					headers.setBearerAuth(openAiToken);
+					headers.setContentType(MediaType.APPLICATION_JSON);
+				})
+				.build();
 	}
 
 	/**
@@ -118,8 +107,7 @@ public class AssistantApi {
 		Assert.notNull(requestBody, "The request body can not be null.");
 
 		return this.rest.post()
-				.uri(base("/v1/assistants"))
-				.headers(this.headers)
+				.uri("/v1/assistants")
 				.body(requestBody)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -137,8 +125,7 @@ public class AssistantApi {
 		Assert.hasText(assistantId, "Assistant ID can not be empty.");
 
 		return this.rest.get()
-				.uri(base("/v1/assistants/{assistant_id}"), assistantId)
-				.headers(this.headers)
+				.uri("/v1/assistants/{assistant_id}", assistantId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Assistant.class);
@@ -157,8 +144,7 @@ public class AssistantApi {
 		Assert.hasText(assistantId, "Assistant ID can not be empty.");
 
 		return this.rest.post()
-				.uri(base("/v1/assistants/{assistant_id}"), assistantId)
-				.headers(this.headers)
+				.uri("/v1/assistants/{assistant_id}", assistantId)
 				.body(requestBody)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -174,9 +160,8 @@ public class AssistantApi {
 	public DataList<Data.Assistant> listAssistants(ListRequest listRequest) {
 
 		return this.rest.get()
-				.uri(base("/v1/assistants?order={order}&limit={limit}&before={before}&after={after}"),
+				.uri("/v1/assistants?order={order}&limit={limit}&before={before}&after={after}",
 						listRequest.order(), listRequest.limit(), listRequest.before(), listRequest.after())
-				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -194,8 +179,7 @@ public class AssistantApi {
 		Assert.hasText(assistantId, "Assistant ID can not be empty.");
 
 		return this.rest.delete()
-				.uri(base("/v1/assistants/{assistant_id}"), assistantId)
-				.headers(this.headers)
+				.uri("/v1/assistants/{assistant_id}", assistantId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.DeletionStatus.class);
@@ -214,8 +198,7 @@ public class AssistantApi {
 		Assert.hasText(fileId, "File ID can not be empty.");
 
 		return this.rest.post()
-				.uri(base("/v1/assistants/{assistant_id}/files"), assistantId)
-				.headers(this.headers)
+				.uri("/v1/assistants/{assistant_id}/files", assistantId)
 				.body(Map.of("file_id", fileId))
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -233,8 +216,7 @@ public class AssistantApi {
 		Assert.hasText(fileId, "File ID can not be empty.");
 
 		return this.rest.get()
-				.uri(base("/v1/assistants/{assistant_id}/files/{file_id}"), assistantId, fileId)
-				.headers(this.headers)
+				.uri("/v1/assistants/{assistant_id}/files/{file_id}", assistantId, fileId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.File.class);
@@ -252,8 +234,7 @@ public class AssistantApi {
 		Assert.hasText(fileId, "File ID can not be empty.");
 
 		return this.rest.delete()
-				.uri(base("/v1/assistants/{assistant_id}/files/{file_id}"), assistantId, fileId)
-				.headers(this.headers)
+				.uri("/v1/assistants/{assistant_id}/files/{file_id}", assistantId, fileId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.DeletionStatus.class);
@@ -268,9 +249,7 @@ public class AssistantApi {
 	public DataList<Data.File> listAssistantFiles(String assistantId) {
 		Assert.hasText(assistantId, "Assistant ID can not be empty.");
 		return this.rest.get()
-				.uri(base("/v1/assistants/{assistant_id}/files"),
-						assistantId)
-				.headers(this.headers)
+				.uri("/v1/assistants/{assistant_id}/files", assistantId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -289,8 +268,7 @@ public class AssistantApi {
 		Assert.notNull(createRequest, "Thread request can not be null.");
 
 		return this.rest.post()
-				.uri(base("/v1/threads"))
-				.headers(this.headers)
+				.uri("/v1/threads")
 				.body(createRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -307,8 +285,7 @@ public class AssistantApi {
 		Assert.hasText(threadId, "threadId can not be empty.");
 
 		return this.rest.get()
-				.uri(base("/v1/threads/{thread_id}"), threadId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}", threadId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Thread.class);
@@ -326,8 +303,7 @@ public class AssistantApi {
 		Assert.hasText(threadId, "threadId can not be empty.");
 
 		return this.rest.post()
-				.uri(base("/v1/threads/{thread_id}"), threadId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}", threadId)
 				.body(modifyRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -343,9 +319,8 @@ public class AssistantApi {
 		Assert.notNull(listRequest, "The listRequest can not be null");
 
 		return this.rest.get()
-				.uri(base("/v1/threads?order={order}&limit={limit}&before={before}&after={after}"),
+				.uri("/v1/threads?order={order}&limit={limit}&before={before}&after={after}",
 						listRequest.order(), listRequest.limit(), listRequest.before(), listRequest.after())
-				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -361,8 +336,7 @@ public class AssistantApi {
 	public Data.DeletionStatus deleteThread(String threadId) {
 		Assert.hasText(threadId, "threadId can not be empty.");
 		return this.rest.delete()
-				.uri(base("/v1/threads/{thread_id}"), threadId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}", threadId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.DeletionStatus.class);
@@ -381,8 +355,7 @@ public class AssistantApi {
 	public Data.Message createMessage(Data.MessageRequest messageRequest, String threadId) {
 		Assert.hasText(threadId, "threadId can not be empty.");
 		return this.rest.post()
-				.uri(base("/v1/threads/{thread_id}/messages"), threadId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}/messages", threadId)
 				.body(messageRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -402,8 +375,7 @@ public class AssistantApi {
 		Assert.hasText(messageId, "messageId can not be empty.");
 
 		return this.rest.get()
-				.uri(base("/v1/threads/{thread_id}/messages/{message_id}"), threadId, messageId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}/messages/{message_id}", threadId, messageId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -425,8 +397,7 @@ public class AssistantApi {
 		Assert.hasText(messageId, "The 'messageId' can not be empty.");
 
 		return this.rest.post()
-				.uri(base("/v1/threads/{thread_id}/messages/{message_id}"), threadId, messageId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}/messages/{message_id}", threadId, messageId)
 				.body(messageRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -446,9 +417,8 @@ public class AssistantApi {
 		Assert.hasText(threadId, "The threadId can not be empty.");
 
 		return this.rest.get()
-				.uri(base("/v1/threads/{thread_id}/messages?order={order}&limit={limit}&before={before}&after={after}"),
+				.uri("/v1/threads/{thread_id}/messages?order={order}&limit={limit}&before={before}&after={after}",
 						threadId, listRequest.order(), listRequest.limit(), listRequest.before(), listRequest.after())
-				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -470,8 +440,7 @@ public class AssistantApi {
 		Assert.notNull(runRequest, "The runRequest can not be null.");
 
 		return this.rest.post()
-				.uri(base("/v1/threads/{thread_id}/runs"), threadId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}/runs", threadId)
 				.body(runRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -489,8 +458,7 @@ public class AssistantApi {
 		Assert.hasText(threadId, "The threadId can not be empty.");
 		Assert.hasText(runId, "The runId threadId can not be empty.");
 		return this.rest.get()
-				.uri(base("/v1/threads/{thread_id}/runs/{run_id}"), threadId, runId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}/runs/{run_id}", threadId, runId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Run.class);
@@ -510,8 +478,7 @@ public class AssistantApi {
 		Assert.notNull(metadata, "The metadata can not be null.");
 
 		return this.rest.post()
-				.uri(base("/v1/threads/{thread_id}/runs/{run_id}"), threadId, runId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}/runs/{run_id}", threadId, runId)
 				.body(metadata)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -530,9 +497,8 @@ public class AssistantApi {
 		Assert.notNull(listRequest, "The listRequest can not be null.");
 
 		return this.rest.get()
-				.uri(base("/v1/threads/{thread_id}/runs?order={order}&limit={limit}&before={before}&after={after}"),
+				.uri("/v1/threads/{thread_id}/runs?order={order}&limit={limit}&before={before}&after={after}",
 						threadId, listRequest.order(), listRequest.limit(), listRequest.before(), listRequest.after())
-				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -556,8 +522,7 @@ public class AssistantApi {
 		Assert.notNull(submitToolOutputs, "The requestBody can not be null.");
 
 		return this.rest.post()
-				.uri(base("/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs"), threadId, runId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", threadId, runId)
 				.body(submitToolOutputs)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -576,8 +541,7 @@ public class AssistantApi {
 		Assert.hasText(runId, "The runId can not be empty.");
 
 		return this.rest.post()
-				.uri(base("/v1/threads/{thread_id}/runs/{run_id}/cancel"), threadId, runId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}/runs/{run_id}/cancel", threadId, runId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.Run.class);
@@ -593,8 +557,7 @@ public class AssistantApi {
 		Assert.notNull(runThreadRequest, "The runThreadRequest can not be null.");
 
 		return this.rest.post()
-				.uri(base("/v1/threads/runs"))
-				.headers(this.headers)
+				.uri("/v1/threads/runs")
 				.body(runThreadRequest)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
@@ -617,8 +580,7 @@ public class AssistantApi {
 		Assert.hasText(stepId, "The stepId threadId can not be empty.");
 
 		return this.rest.get()
-				.uri(base("/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}"), threadId, runId, stepId)
-				.headers(this.headers)
+				.uri("/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}", threadId, runId, stepId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.RunStep.class);
@@ -638,11 +600,10 @@ public class AssistantApi {
 		Assert.notNull(listRequest, "The listRequest can not be null.");
 
 		return this.rest.get()
-				.uri(base(
-						"/v1/threads/{thread_id}/runs/{run_id}/steps?order={order}&limit={limit}&before={before}&after={after}"),
+				.uri(
+						"/v1/threads/{thread_id}/runs/{run_id}/steps?order={order}&limit={limit}&before={before}&after={after}",
 						threadId, runId, listRequest.order(), listRequest.limit(), listRequest.before(),
 						listRequest.after())
-				.headers(this.headers)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {

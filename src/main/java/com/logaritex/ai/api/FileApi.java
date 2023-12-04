@@ -16,20 +16,15 @@
 
 package com.logaritex.ai.api;
 
-import java.io.IOException;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logaritex.ai.api.Data.DataList;
 import com.logaritex.ai.api.Data.File;
-import com.logaritex.ai.api.Data.ResponseError;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -47,9 +42,7 @@ public class FileApi {
 	public static final String DEFAULT_BASE_URL = "https://api.openai.com";
 
 	private final RestClient rest;
-	private final Consumer<HttpHeaders> jsonContentHeaders;
 	private final Consumer<HttpHeaders> multipartContentHeaders;
-	private final Function<String, String> url;
 
 	private final String openAiToken;
 	private final ResponseErrorHandler responseErrorHandler;
@@ -66,26 +59,25 @@ public class FileApi {
 	 * Create new FileApi instance.
 	 * @param baseUrl the api base url.
 	 * @param openAiToken Your OpenAPI api-key.
+	 * @param restClientBuilder the {@link RestClient.Builder} to use.
 	 */
 	public FileApi(String baseUrl, String openAiToken, RestClient.Builder restClientBuilder) {
-		this.rest = restClientBuilder.build();
 		this.openAiToken = openAiToken;
-		this.jsonContentHeaders = headers -> {
-			headers.setBearerAuth(openAiToken);
-			headers.setContentType(MediaType.APPLICATION_JSON);
-		};
 
 		this.multipartContentHeaders = headers -> {
 			headers.setBearerAuth(openAiToken);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 		};
 
-		this.url = suffix -> baseUrl + suffix;
 		this.responseErrorHandler = new OpenAiResponseErrorHandler();
-	}
 
-	private String base(String resource) {
-		return this.url.apply(resource);
+		this.rest = restClientBuilder
+				.baseUrl(baseUrl)
+				.defaultHeaders(headers -> {
+					headers.setBearerAuth(openAiToken);
+					headers.setContentType(MediaType.APPLICATION_JSON);
+				})
+				.build();
 	}
 
 	/**
@@ -97,8 +89,7 @@ public class FileApi {
 	public DataList<Data.File> listFiles(File.Purpose purpose) {
 
 		return this.rest.get()
-				.uri(base("/v1/files?purpose={purpose}"), purpose.getText())
-				.headers(this.jsonContentHeaders)
+				.uri("/v1/files?purpose={purpose}", purpose.getText())
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
@@ -125,7 +116,7 @@ public class FileApi {
 		multipartBody.add("file", file);
 
 		return this.rest.post()
-				.uri(base("/v1/files"))
+				.uri("/v1/files")
 				.headers(this.multipartContentHeaders)
 				.body(multipartBody)
 				.retrieve()
@@ -141,8 +132,7 @@ public class FileApi {
 	 */
 	public Data.DeletionStatus deleteFile(String fileId) {
 		return this.rest.delete()
-				.uri(base("/v1/files/{file_id}"), fileId)
-				.headers(this.jsonContentHeaders)
+				.uri("/v1/files/{file_id}", fileId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.DeletionStatus.class);
@@ -156,8 +146,7 @@ public class FileApi {
 	 */
 	public Data.File retrieveFile(String fileId) {
 		return this.rest.get()
-				.uri(base("/v1/files/{file_id}"), fileId)
-				.headers(this.jsonContentHeaders)
+				.uri("/v1/files/{file_id}", fileId)
 				.retrieve()
 				.onStatus(this.responseErrorHandler)
 				.body(Data.File.class);
@@ -171,7 +160,7 @@ public class FileApi {
 	 */
 	public byte[] retrieveFileContent(String fileId) {
 		return this.rest.get()
-				.uri(base("/v1/files/{file_id}/content"), fileId)
+				.uri("/v1/files/{file_id}/content", fileId)
 				.headers(headers -> {
 					headers.setBearerAuth(this.openAiToken);
 				})
