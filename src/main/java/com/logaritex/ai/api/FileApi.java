@@ -51,7 +51,8 @@ public class FileApi {
 	private final Consumer<HttpHeaders> multipartContentHeaders;
 	private final Function<String, String> url;
 
-	private String openAiToken;
+	private final String openAiToken;
+	private final ResponseErrorHandler responseErrorHandler;
 
 	/**
 	 * Create new FileApi instance.
@@ -80,6 +81,7 @@ public class FileApi {
 		};
 
 		this.url = suffix -> baseUrl + suffix;
+		this.responseErrorHandler = new OpenAiResponseErrorHandler();
 	}
 
 	private String base(String resource) {
@@ -177,28 +179,6 @@ public class FileApi {
 				.onStatus(this.responseErrorHandler)
 				.body(byte[].class);
 	}
-
-	/**
-	 * Error handler assigned to all REST call to detect and report API call errors.
-	 */
-	final ResponseErrorHandler responseErrorHandler = new ResponseErrorHandler() {
-		@Override
-		public boolean hasError(ClientHttpResponse response) throws IOException {
-			if (response.getStatusCode().isError()) {
-				throw new FileApiException(String.format("%s - %s", response.getStatusCode().value(),
-						new ObjectMapper().readValue(response.getBody(), ResponseError.class)));
-			}
-			return true;
-		}
-
-		@Override
-		public void handleError(ClientHttpResponse response) throws IOException {
-			if (response.getStatusCode().isError()) {
-				throw new FileApiException(String.format("%s - %s", response.getStatusCode().value(),
-						new ObjectMapper().readValue(response.getBody(), ResponseError.class)));
-			}
-		}
-	};
 
 	/**
 	 * Exception throw if FileApi error is detected.

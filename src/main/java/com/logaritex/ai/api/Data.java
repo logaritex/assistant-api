@@ -214,8 +214,7 @@ public class Data {
 	 */
 	@JsonInclude(Include.NON_NULL)
 	public record AssistantRequestBody(String model, String name, String description, String instructions,
-			List<Tool> tools,
-			List<String> file_ids, Map<String, String> metadata) {
+			List<Tool> tools, List<String> file_ids, Map<String, String> metadata) {
 
 		/**
 		 * Assistant creation request.

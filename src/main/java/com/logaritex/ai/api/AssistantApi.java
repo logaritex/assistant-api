@@ -72,6 +72,9 @@ public class AssistantApi {
 
 	private final Function<String, String> url;
 
+	private final ResponseErrorHandler responseErrorHandler;
+
+
 	/**
 	 * Create an new assistant api.
 	 *
@@ -97,6 +100,7 @@ public class AssistantApi {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 		};
 		this.url = suffix -> baseUrl + suffix;
+		this.responseErrorHandler = new OpenAiResponseErrorHandler();
 	}
 
 	private String base(String resource) {
@@ -664,25 +668,4 @@ public class AssistantApi {
 			throw new RuntimeException(e);
 		}
 	}
-
-	// Common helpers
-
-	final ResponseErrorHandler responseErrorHandler = new ResponseErrorHandler() {
-		@Override
-		public boolean hasError(ClientHttpResponse response) throws IOException {
-			if (response.getStatusCode().isError()) {
-				throw new RuntimeException(String.format("%s - %s", response.getStatusCode().value(),
-						new ObjectMapper().readValue(response.getBody(), ResponseError.class)));
-			}
-			return true;
-		}
-
-		@Override
-		public void handleError(ClientHttpResponse response) throws IOException {
-			if (response.getStatusCode().isError()) {
-				throw new RuntimeException(String.format("%s - %s", response.getStatusCode().value(),
-						new ObjectMapper().readValue(response.getBody(), ResponseError.class)));
-			}
-		}
-	};
 }
