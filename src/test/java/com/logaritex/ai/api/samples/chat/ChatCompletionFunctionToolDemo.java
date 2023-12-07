@@ -90,7 +90,7 @@ public class ChatCompletionFunctionToolDemo {
 		ChatCompletionMessage responseMessage = chatCompletion.choices().get(0).message();
 
 		// Step 2: check if the model wanted to call a function
-		if (responseMessage.tool_calls() != null) {
+		if (responseMessage.toolCalls() != null) {
 			// Step 3: call the function
 			// Note: the JSON response may not always be valid; be sure to handle errors
 
@@ -101,7 +101,7 @@ public class ChatCompletionFunctionToolDemo {
 			messages.add(responseMessage);
 
 			// Step 4: send the info for each function call and function response to the model.
-			for (ToolCall toolCall : responseMessage.tool_calls()) {
+			for (ToolCall toolCall : responseMessage.toolCalls()) {
 				var functionName = toolCall.function().name();
 				if ("getCurrentWeather".equals(functionName)) {
 					WeatherFunction.Request weatherRequest = fromJson(toolCall.function().arguments(),

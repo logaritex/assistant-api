@@ -335,10 +335,10 @@ public class Data {
 	 * @param data List of entities.
 	 * @param first_id The ID of the first entity in the data list.
 	 * @param last_id The ID of the last entity in the data list.
-	 * @param has_mode ???
+	 * @param has_more Whether there are more entities available.
 	 */
 	public record DataList<T>(String object, List<T> data, String first_id, String last_id,
-			boolean has_mode) {
+			boolean has_more) {
 	}
 
 	/**
@@ -688,7 +688,7 @@ public class Data {
 	 * API error response.
 	 */
 	public record ResponseError(Error error) {
-		private record Error(String message, String type, String param, String code) {
+		public record Error(String message, String type, String param, String code) {
 		}
 	}
 

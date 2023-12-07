@@ -16,32 +16,27 @@
 
 package com.logaritex.ai.api.samples.chat;
 
-import java.util.List;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletion;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionRequest;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage.Role;
 import com.logaritex.ai.api.ChatCompletionApi;
+import com.logaritex.ai.api.ChatCompletionApi.EmbeddingRequest;
 
 /**
  *
  * @author Christian Tzolov
  */
-public class ChatCompletionDemo {
+public class EmbeddingDemo {
 
 	public static void main(String[] args) throws JsonProcessingException {
 		ChatCompletionApi completionApi = new ChatCompletionApi(System.getenv("OPENAI_API_KEY"));
 
-		var request = new ChatCompletionRequest(
-				List.of(new ChatCompletionMessage("What is the capital of Bulgaria?", Role.user)),
-				"gpt-4-1106-preview");
+		var request = new EmbeddingRequest<String>("Hello World!");
+		// var request = new EmbeddingRequest<List<Integer>>(
+		// 		List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
 
 		System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(request));
 
-		ChatCompletion response = completionApi.chatCompletion(request);
+		var response = completionApi.embeddings(request);
 
 		System.out.println(response);
 	}

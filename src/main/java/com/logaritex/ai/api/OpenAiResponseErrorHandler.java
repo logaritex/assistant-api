@@ -33,11 +33,7 @@ public class OpenAiResponseErrorHandler implements ResponseErrorHandler {
 
 	@Override
 	public boolean hasError(ClientHttpResponse response) throws IOException {
-		if (response.getStatusCode().isError()) {
-			throw new RuntimeException(String.format("%s - %s", response.getStatusCode().value(),
-					new ObjectMapper().readValue(response.getBody(), ResponseError.class)));
-		}
-		return true;
+		return response.getStatusCode().isError();
 	}
 
 	@Override
