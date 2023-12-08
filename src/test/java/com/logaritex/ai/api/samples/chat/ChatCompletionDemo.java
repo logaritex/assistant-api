@@ -37,7 +37,7 @@ public class ChatCompletionDemo {
 
 		var request = new ChatCompletionRequest(
 				List.of(new ChatCompletionMessage("What is the capital of Bulgaria?", Role.user)),
-				"gpt-4-1106-preview");
+				"gpt-4-1106-preview", 0.8f);
 
 		System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(request));
 

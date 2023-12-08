@@ -24,17 +24,8 @@ import java.util.function.Consumer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletion.Choice;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletion.Usage;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionChunk.ChunkChoice;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage.ChatCompletionFunction;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage.Role;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage.ToolCall;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionRequest.ResponseFormat;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionRequest.ToolChoice;
-import com.logaritex.ai.api.Data.ResponseError;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -57,8 +48,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class ChatCompletionApi {
 
 	private static final String DEFAULT_BASE_URL = "https://api.openai.com";
-
 	private static final String DEFAULT_EMBEDDING_MODEL = "text-embedding-ada-002";
+	private static final String SSE_DONE = "[DONE]";
 
 	private final Consumer<HttpHeaders> jsonContentHeaders;
 	private final ResponseErrorHandler responseErrorHandler;
@@ -119,6 +110,86 @@ public class ChatCompletionApi {
 	}
 
 	/**
+	 * API error response.
+	 * @param error Error details.
+	 */
+	@JsonInclude(Include.NON_NULL)
+	public record ResponseError(@JsonProperty("error") Error error) {
+
+		/**
+		 * Error details.
+		 * @param message Error message.
+		 * @param type Error type.
+		 * @param param Error parameter.
+		 * @param code Error code.
+		 */
+		@JsonInclude(Include.NON_NULL)
+		public record Error(
+				@JsonProperty("message") String message,
+				@JsonProperty("type") String type,
+				@JsonProperty("param") String param,
+				@JsonProperty("code") String code) {
+		}
+	}
+
+	/**
+	 * Represents a tool the model may call. Currently, only functions are supported as a tool.
+	 *
+	 * @param type The type of the tool. Currently, only 'function' is supported.
+	 * @param function The function definition.
+	 */
+	@JsonInclude(Include.NON_NULL)
+	public record FunctionTool(
+			@JsonProperty("type") Type type,
+			@JsonProperty("function") Function function) {
+
+		/**
+		 * Create a tool of type 'function' and the given function definition.
+		 * @param function function definition.
+		 */
+		public FunctionTool(Function function) {
+			this(Type.function, function);
+		}
+
+		/**
+		 * Create a tool of type 'function' and the given function definition.
+		 */
+		public enum Type {
+			/**
+			 * Function tool type.
+			 */
+			function
+		}
+
+		/**
+		 * Function definition.
+		 *
+		 * @param description A description of what the function does, used by the model to choose when and how to call
+		 * the function.
+		 * @param name The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes,
+		 * with a maximum length of 64.
+		 * @param parameters The parameters the functions accepts, described as a JSON Schema object. To describe a
+		 * function that accepts no parameters, provide the value {"type": "object", "properties": {}}.
+		 */
+		public record Function(
+				@JsonProperty("description") String description,
+				@JsonProperty("name") String name,
+				@JsonProperty("parameters") Map<String, Object> parameters) {
+
+			/**
+			 * Create tool function definition.
+			 *
+			 * @param description tool function description.
+			 * @param name tool function name.
+			 * @param jsonSchema tool function schema as json.
+			 */
+			public Function(String description, String name, String jsonSchema) {
+				this(description, name, parseJson(jsonSchema));
+			}
+		}
+	}
+
+	/**
 	 * Creates a model response for the given chat conversation.
 	 *
 	 * @param messages A list of messages comprising the conversation so far.
@@ -176,7 +247,7 @@ public class ChatCompletionApi {
 			@JsonProperty("stream") Boolean stream,
 			@JsonProperty("temperature") Float temperature,
 			@JsonProperty("top_p") Float topP,
-			@JsonProperty("tools") List<Data.FunctionTool> tools,
+			@JsonProperty("tools") List<FunctionTool> tools,
 			@JsonProperty("tool_choice") ToolChoice toolChoice,
 			@JsonProperty("user") String user) {
 
@@ -185,10 +256,11 @@ public class ChatCompletionApi {
 		 *
 		 * @param messages A list of messages comprising the conversation so far.
 		 * @param model ID of the model to use.
+		 * @param temperature What sampling temperature to use, between 0 and 1.
 		 */
-		public ChatCompletionRequest(List<ChatCompletionMessage> messages, String model) {
+		public ChatCompletionRequest(List<ChatCompletionMessage> messages, String model, Float temperature) {
 			this(messages, model, 0.0f, null, null, 1, 0.0f,
-					null, null, null, false, 0.8f, null,
+					null, null, null, false, temperature, null,
 					null, null, null);
 		}
 
@@ -199,10 +271,12 @@ public class ChatCompletionApi {
 		 * @param model ID of the model to use.
 		 * @param stream If set, partial message deltas will be sent.Tokens will be sent as data-only server-sent events
 		 * as they become available, with the stream terminated by a data: [DONE] message.
+		 * @param temperature What sampling temperature to use, between 0 and 1.
 		 */
-		public ChatCompletionRequest(List<ChatCompletionMessage> messages, String model, boolean stream) {
+		public ChatCompletionRequest(List<ChatCompletionMessage> messages, String model, boolean stream,
+				Float temperature) {
 			this(messages, model, 0.0f, null, null, 1, 0.0f,
-					null, null, null, stream, 0.8f, null,
+					null, null, null, stream, temperature, null,
 					null, null, null);
 		}
 
@@ -213,13 +287,13 @@ public class ChatCompletionApi {
 		 * @param messages A list of messages comprising the conversation so far.
 		 * @param model ID of the model to use.
 		 * @param tools A list of tools the model may call. Currently, only functions are supported as a tool.
-		 * @param tool_choice Controls which (if any) function is called by the model.
+		 * @param toolChoice Controls which (if any) function is called by the model.
 		 */
 		public ChatCompletionRequest(List<ChatCompletionMessage> messages, String model,
-				List<Data.FunctionTool> tools, ToolChoice tool_choice) {
+				List<FunctionTool> tools, ToolChoice toolChoice) {
 			this(messages, model, 0.0f, null, null, 1, 0.0f,
 					null, null, null, false, 0.8f, null,
-					tools, tool_choice, null);
+					tools, toolChoice, null);
 		}
 
 		/**
@@ -473,10 +547,9 @@ public class ChatCompletionApi {
 	 * Creates a streaming chat response for the given chat conversation.
 	 *
 	 * @param chatRequest The chat completion request. Must have the stream property set to true.
-	 * @return The chat completion Flux response.
+	 * @return Returns a {@link Flux} stream from chat completion chunks.
 	 */
-	public Flux<ChatCompletionChunk> chatCompletionStreaming(
-			ChatCompletionRequest chatRequest) {
+	public Flux<ChatCompletionChunk> chatCompletionStream(ChatCompletionRequest chatRequest) {
 
 		Assert.notNull(chatRequest, "The request body can not be null.");
 		Assert.isTrue(chatRequest.stream(), "Request must set the steam property to true.");
@@ -485,18 +558,13 @@ public class ChatCompletionApi {
 				.uri("/v1/chat/completions")
 				.body(Mono.just(chatRequest), ChatCompletionRequest.class)
 				.retrieve()
-				// .onStatus(null, null)
 				.bodyToFlux(String.class)
-				.takeUntil(content -> content.contains("[DONE]"))
-				.filter(content -> !content.contains("[DONE]"))
-				.map(content -> {
-					try {
-						return this.objectMapper.readValue(content, ChatCompletionChunk.class);
-					}
-					catch (JsonProcessingException e) {
-						throw new RuntimeException(e);
-					}
-				});
+				// cancels the flux stream after the SSE_DONE is received.
+				.takeUntil(content -> content.contains(SSE_DONE))
+				// filters out the SSE_DONE message.
+				.filter(content -> !content.contains(SSE_DONE))
+				.map(content -> parseJson(content, ChatCompletionChunk.class));
+
 	}
 
 	/**
@@ -529,7 +597,7 @@ public class ChatCompletionApi {
 	 * @param input Input text to embed, encoded as a string or array of tokens. To embed multiple inputs in a single
 	 * request, pass an array of strings or array of token arrays. The input must not exceed the max input tokens for
 	 * the model (8192 tokens for text-embedding-ada-002), cannot be an empty string, and any array must be 2048
-	 * dimensions or less
+	 * dimensions or less.
 	 * @param model ID of the model to use.
 	 * @param encodingFormat The format to return the embeddings in. Can be either float or base64.
 	 * @param user A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
@@ -617,5 +685,25 @@ public class ChatCompletionApi {
 				.onStatus(this.responseErrorHandler)
 				.body(new ParameterizedTypeReference<>() {
 				});
+	}
+
+	private static Map<String, Object> parseJson(String jsonSchema) {
+		try {
+			return new ObjectMapper().readValue(jsonSchema,
+					new TypeReference<Map<String, Object>>() {
+					});
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Failed to parse schema: " + jsonSchema, e);
+		}
+	}
+
+	private <T> T parseJson(String json, Class<T> type) {
+		try {
+			return this.objectMapper.readValue(json, type);
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Failed to parse schema: " + json, e);
+		}
 	}
 }

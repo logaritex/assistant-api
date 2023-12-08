@@ -76,7 +76,7 @@ public class ChatCompletionApiTests {
 
 		var request = new ChatCompletionRequest(
 				List.of(new ChatCompletionMessage("What is the capital of Bulgaria?", ChatCompletionMessage.Role.user)),
-				"gpt-4-1106-preview");
+				"gpt-4-1106-preview", 0.8f);
 
 		var choice = new ChatCompletion.Choice(null, 0,
 				new ChatCompletionMessage("This is a response", Role.assistant));

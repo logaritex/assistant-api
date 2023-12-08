@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logaritex.ai.api.ChatCompletionApi;
 import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionChunk;
 import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionRequest;
 import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage.Role;
+import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionRequest;
 import reactor.core.publisher.Flux;
 
 /**
@@ -41,24 +41,30 @@ public class ChatCompletionStreamingDemo {
 						"What is the capital of Bulgaria?",
 						Role.user)),
 				"gpt-4-1106-preview",
-				true); // stream = true
+				true, // stream = true
+				0.8f);
 
 		System.out.println(
 				"Request: " + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(streamRequest));
 
-		Flux<ChatCompletionChunk> flux = completionApi.chatCompletionStreaming(streamRequest);
+		Flux<ChatCompletionChunk> flux = completionApi.chatCompletionStream(streamRequest);
 
-		flux.subscribe(
-				content -> {
-					content.choices().forEach(choice -> {
-						// System.out.println("role: " + choice.delta().getRole());
-						System.out.println("content: " + choice.delta().content());
-					});
-				},
-				error -> System.out.println("Error receiving SSE: " + error),
-				() -> System.out.println("Completed!!!"));
+		// flux.subscribe(
+		// content -> {
+		// content.choices().forEach(choice -> {
+		// // System.out.println("role: " + choice.delta().getRole());
+		// // System.out.println("content: " + choice.delta().content());
 
-		var b = flux.blockLast();
+		// });
+		// },
+		// error -> System.out.println("Error receiving SSE: " + error),
+		// () -> System.out.println("Completed!!!"));
+
+		// var b = flux.blockLast();
+
+		List<ChatCompletionChunk> chunks = flux.collectList().block();
+		System.out.println("Chunks: " + chunks);
+
 	}
 
 }

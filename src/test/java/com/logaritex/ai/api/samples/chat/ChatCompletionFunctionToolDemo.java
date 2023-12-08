@@ -24,10 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.logaritex.ai.api.ChatCompletionApi;
 import com.logaritex.ai.api.ChatCompletionApi.ChatCompletion;
 import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage;
-import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionRequest;
 import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage.Role;
 import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionMessage.ToolCall;
-import com.logaritex.ai.api.Data;
+import com.logaritex.ai.api.ChatCompletionApi.ChatCompletionRequest;
 import com.logaritex.ai.api.samples.function.WeatherFunction;
 import com.logaritex.ai.api.samples.function.WeatherFunction.Response;
 
@@ -50,7 +49,7 @@ public class ChatCompletionFunctionToolDemo {
 				"What's the weather like in San Francisco, Tokyo, and Paris?",
 				Role.user);
 
-		var functionTool = new Data.FunctionTool(new Data.FunctionTool.Function(
+		var functionTool = new ChatCompletionApi.FunctionTool(new ChatCompletionApi.FunctionTool.Function(
 				"Get the weather in location",
 				"getCurrentWeather", """
 						{
@@ -83,7 +82,7 @@ public class ChatCompletionFunctionToolDemo {
 				messages,
 				"gpt-4-1106-preview",
 				List.of(functionTool),
-				null); // null == auto
+				(ChatCompletionRequest.ToolChoice) null); // null == auto
 
 		ChatCompletion chatCompletion = completionApi.chatCompletion(chatCompletionRequest);
 
@@ -119,7 +118,8 @@ public class ChatCompletionFunctionToolDemo {
 
 			ChatCompletion chatCompletion2 = completionApi.chatCompletion(new ChatCompletionRequest(
 					messages,
-					"gpt-4-1106-preview"));
+					"gpt-4-1106-preview",
+					0.8f));
 
 			System.out.println(chatCompletion2);
 		}
